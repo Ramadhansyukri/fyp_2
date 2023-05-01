@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fyp_2/services/auth.dart';
+import 'package:fyp_2/shared/constants.dart';
+import 'package:fyp_2/shared/loading.dart';
 
 class UserReg extends StatefulWidget {
   //const UserReg({Key? key}) : super(key: key);
@@ -15,6 +17,7 @@ class _UserRegState extends State<UserReg> {
 
   final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
+  bool loading = false;
 
   var email = '';
   var password = '';
@@ -22,7 +25,7 @@ class _UserRegState extends State<UserReg> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return loading ? Loading() : Scaffold(
       backgroundColor: Colors.pink[900],
       appBar: AppBar(
         backgroundColor: Colors.pink[600],
@@ -46,6 +49,7 @@ class _UserRegState extends State<UserReg> {
             children: <Widget>[
               SizedBox(height: 20.0),
               TextFormField(
+                decoration: textInputDecoration.copyWith(hintText: 'Email'),
                   validator: (val) => val!.isEmpty ? 'Enter an email' : null,
                   onChanged: (val) {
                     setState(() => email = val);
@@ -53,6 +57,7 @@ class _UserRegState extends State<UserReg> {
               ),
               SizedBox(height: 20.0),
               TextFormField(
+                  decoration: textInputDecoration.copyWith(hintText: 'Password'),
                   obscureText: true,
                   validator: (val) => val!.length <8 ? 'Password must be at least 8 character' : null,
                   onChanged: (val){
@@ -67,9 +72,14 @@ class _UserRegState extends State<UserReg> {
                 ),
                 onPressed: () async {
                   if (_formKey.currentState!.validate()){
+                    setState(() => loading = true);
                     dynamic result = await _auth.registerWithEmailAndPassword(email, password);
                     if(result == null){
                       setState(() => error = 'Please supply valid info');
+                      setState(() {
+                        error = 'Please supply valid info';
+                        loading = false;
+                      });
                     }
                   }
                 },
