@@ -1,11 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fyp_2/screens/food_page_body.dart';
-import 'package:fyp_2/widgets/big_text.dart';
-import 'package:fyp_2/widgets/small_text.dart';
+import 'package:fyp_2/screens/user_profile_screen.dart';
 import 'package:fyp_2/services/auth.dart';
 
-import '../utils/colors.dart';
+import '../widgets/header_widget.dart';
 
 class UserHome extends StatefulWidget {
   const UserHome({Key? key}) : super(key: key);
@@ -16,63 +14,83 @@ class UserHome extends StatefulWidget {
 
 class _UserHomeState extends State<UserHome> {
 
+  double  _drawerIconSize = 24;
+  double _drawerFontSize = 17;
+
   final AuthService _auth = AuthService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home'),
-        backgroundColor: Colors.pink[900],
-        elevation: 0.0,
-        actions: <Widget>[
-          ElevatedButton.icon(
-            icon: Icon(Icons.person),
-            label: Text('Log Out'),
-            onPressed: () async {
-              await _auth.SignOut();
-            },
-          )
-        ],
-      ),
-      body: Column(
-        children: [
-          Container(
-
-            child: Container(
-              margin: EdgeInsets.only(top: 45, bottom: 15),
-              padding: EdgeInsets.only(left: 20, right: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    children: [
-                      BigText(text: "Malaysia", color: AppColors.mainColor,size: 30,),
-                      Row(
-                        children: [
-                          SmallText(text: "Johor", color: Colors.black54,),
-                          Icon(Icons.arrow_drop_down_rounded)
-                        ],
-                      )
-                    ],
-                  ),
-                  Center(
-                    child: Container(
-                      width: 45,
-                      height: 45,
-                      child: Icon(Icons.search, color: Colors.white),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        color: AppColors.mainColor,
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            ),
+        title: Text("Home",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        elevation: 0.5,
+        iconTheme: IconThemeData(color: Colors.white),
+        flexibleSpace:Container(
+          decoration: BoxDecoration(
+              gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: <Color>[Theme.of(context).primaryColor, Theme.of(context).colorScheme.secondary,]
+              )
           ),
-          FoodPageBody(),
-        ],
+        ),
+      ),
+      drawer: Drawer(
+        child: Container(
+          decoration:BoxDecoration(
+              gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  stops: [0.0, 1.0],
+                  colors: [
+                    Theme.of(context).primaryColor.withOpacity(0.2),
+                    Theme.of(context).colorScheme.secondary.withOpacity(0.5),
+                  ]
+              )
+          ) ,
+          child: ListView(
+            children: [
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    stops: [0.0, 1.0],
+                    colors: [ Theme.of(context).primaryColor,Theme.of(context).colorScheme.secondary,],
+                  ),
+                ),
+                child: Container(
+                  alignment: Alignment.bottomLeft,
+                  child: Text("Food Delivery",
+                    style: TextStyle(fontSize: 25,color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => UserProfile()), );
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.logout_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () async {
+                  await _auth.SignOut();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Container(height: 100, child: HeaderWidget(100,false,Icons.house_rounded),)
       ),
     );
   }

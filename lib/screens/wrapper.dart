@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fyp_2/screens/user_auth_screen.dart';
 import 'package:fyp_2/screens/user_home_screen.dart';
+import 'package:fyp_2/screens/user_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:fyp_2/models/user_models.dart';
 
@@ -14,7 +14,7 @@ class Wrapper extends StatelessWidget {
     final user = Provider.of<Users?>(context);
 
     if (user == null) {
-      return UserAuth();
+      return UserSignIn();
     }else {
       return UserHome();
     }
