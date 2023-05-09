@@ -1,7 +1,6 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:fyp_2/screens/user_sign_in.dart';
 
+import '../services/auth.dart';
 import '../shared/theme_helper.dart';
 import '../widgets/header_widget.dart';
 
@@ -15,6 +14,9 @@ class ForgotPassword extends StatefulWidget {
 class _ForgotPasswordState extends State<ForgotPassword> {
 
   final _formKey = GlobalKey<FormState>();
+  final AuthService _auth = AuthService();
+
+  var email = '';
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +88,9 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                   }
                                   return null;
                                 },
+                                  onChanged: (val) {
+                                    setState(() => email = val);
+                                  }
                               ),
                               decoration: ThemeHelper().inputBoxDecorationShadow(),
                             ),
@@ -106,36 +111,11 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                     ),
                                   ),
                                 ),
-                                onPressed: () {
+                                onPressed: () async {
                                   if(_formKey.currentState!.validate()) {
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => UserSignIn()),
-                                    );
+                                    await _auth.resetPassword(email);
                                   }
                                 },
-                              ),
-                            ),
-                            SizedBox(height: 30.0),
-                            Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(text: "Remember your password? "),
-                                  TextSpan(
-                                    text: 'Login',
-                                    recognizer: TapGestureRecognizer()
-                                      ..onTap = () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => UserSignIn()),
-                                        );
-                                      },
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold
-                                    ),
-                                  ),
-                                ],
                               ),
                             ),
                           ],

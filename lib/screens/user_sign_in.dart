@@ -1,6 +1,5 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:fyp_2/screens/user_register.dart';
 import 'package:fyp_2/services/auth.dart';
 import 'package:fyp_2/widgets/header_widget.dart';
 import 'package:fyp_2/shared/loading.dart';
@@ -9,7 +8,10 @@ import 'package:fyp_2/shared/theme_helper.dart';
 import 'forgot_password_screen.dart';
 
 class UserSignIn extends StatefulWidget {
-  const UserSignIn({Key? key}) : super(key: key);
+  //const UserSignIn({Key? key}) : super(key: key);
+  final Function () onClickedRegister;
+
+  const UserSignIn({Key?key, required this.onClickedRegister,}) : super(key: key);
 
   @override
   State<UserSignIn> createState() => _UserSignInState();
@@ -121,9 +123,7 @@ class _UserSignInState extends State<UserSignIn> {
                                           TextSpan(
                                             text: 'Create',
                                             recognizer: TapGestureRecognizer()
-                                              ..onTap = (){
-                                                Navigator.push(context, MaterialPageRoute(builder: (context) => UserReg()));
-                                              },
+                                              ..onTap = widget.onClickedRegister,
                                             style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.secondary),
                                           ),
                                         ]
