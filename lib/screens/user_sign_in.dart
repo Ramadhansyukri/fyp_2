@@ -1,3 +1,4 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/services/auth.dart';
@@ -35,41 +36,50 @@ class _UserSignInState extends State<UserSignIn> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Container(
+            SizedBox(
               height: _headerHeight,
               child: HeaderWidget(_headerHeight, true, Icons.login_rounded), //let's create a common header widget
             ),
             SafeArea(
               child: Container(
-                  padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-                  margin: EdgeInsets.fromLTRB(20, 10, 20, 10),// This will be the login form
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  margin: const EdgeInsets.fromLTRB(20, 10, 20, 10),// This will be the login form
                   child: Column(
                     children: [
-                      Text(
+                      const Text(
                         'Hello!',
                         style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold),
                       ),
-                      Text(
+                      const Text(
                         'Sign in into your account',
                         style: TextStyle(color: Colors.grey),
                       ),
-                      SizedBox(height: 30.0),
+                      const SizedBox(height: 30.0),
                       Form(
                           key: _formKey,
                           child: Column(
                             children: [
                               Container(
+                                decoration: ThemeHelper().inputBoxDecorationShadow(),
                                 child: TextFormField(
                                     decoration: ThemeHelper().textInputDecoration('Email', 'Enter your email'),
-                                    validator: (val) => val!.isEmpty ? 'Enter an email' : null,
+                                    validator: (val){
+                                      if(val!.isEmpty){
+                                        return "Email can't be empty";
+                                      }
+                                      else if(!EmailValidator.validate(val)){
+                                        return "Enter a valid email address";
+                                      }
+                                      return null;
+                                    },
                                     onChanged: (val) {
                                       setState(() => email = val);
                                     }
                                 ),
-                                decoration: ThemeHelper().inputBoxDecorationShadow(),
                               ),
-                              SizedBox(height: 30.0),
+                              const SizedBox(height: 30.0),
                               Container(
+                                decoration: ThemeHelper().inputBoxDecorationShadow(),
                                 child: TextFormField(
                                     obscureText: true,
                                     decoration: ThemeHelper().textInputDecoration('Password', 'Enter your password'),
@@ -78,17 +88,16 @@ class _UserSignInState extends State<UserSignIn> {
                                       setState(() => password = val);
                                     }
                                 ),
-                                decoration: ThemeHelper().inputBoxDecorationShadow(),
                               ),
-                              SizedBox(height: 15.0),
+                              const SizedBox(height: 15.0),
                               Container(
-                                margin: EdgeInsets.fromLTRB(10,0,10,20),
+                                margin: const EdgeInsets.fromLTRB(10,0,10,20),
                                 alignment: Alignment.topRight,
                                 child: GestureDetector(
                                   onTap: () {
-                                    Navigator.push( context, MaterialPageRoute( builder: (context) => ForgotPassword()), );
+                                    Navigator.push( context, MaterialPageRoute( builder: (context) => const ForgotPassword()), );
                                   },
-                                  child: Text( "Forgot your password?", style: TextStyle( color: Colors.grey, ),
+                                  child: const Text( "Forgot your password?", style: TextStyle( color: Colors.grey, ),
                                   ),
                                 ),
                               ),
@@ -97,8 +106,8 @@ class _UserSignInState extends State<UserSignIn> {
                                 child: ElevatedButton(
                                   style: ThemeHelper().buttonStyle(),
                                   child: Padding(
-                                    padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
-                                    child: Text('Sign In'.toUpperCase(), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
+                                    padding: const EdgeInsets.fromLTRB(40, 10, 40, 10),
+                                    child: Text('Sign In'.toUpperCase(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
                                   ),
                                   onPressed: () async{
                                     if (_formKey.currentState!.validate()){
@@ -115,11 +124,11 @@ class _UserSignInState extends State<UserSignIn> {
                                 ),
                               ),
                               Container(
-                                margin: EdgeInsets.fromLTRB(10,20,10,20),
+                                margin: const EdgeInsets.fromLTRB(10,20,10,20),
                                 child: Text.rich(
                                     TextSpan(
                                         children: [
-                                          TextSpan(text: "Don\'t have an account? "),
+                                          const TextSpan(text: "Don't have an account? "),
                                           TextSpan(
                                             text: 'Create',
                                             recognizer: TapGestureRecognizer()
@@ -130,10 +139,10 @@ class _UserSignInState extends State<UserSignIn> {
                                     )
                                 ),
                               ),
-                              SizedBox(height: 12.0,),
+                              const SizedBox(height: 12.0,),
                               Text(
                                 error,
-                                style: TextStyle(color: Colors.red, fontSize: 14.0),
+                                style: const TextStyle(color: Colors.red, fontSize: 14.0),
                               )
                             ],
                           )

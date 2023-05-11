@@ -1,3 +1,4 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 
 import '../services/auth.dart';
@@ -20,29 +21,29 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
   @override
   Widget build(BuildContext context) {
-    double _headerHeight = 300;
+    double headerHeight = 300;
     return Scaffold(
         backgroundColor: Colors.white,
         body: SingleChildScrollView(
           child: Column(
             children: [
-              Container(
-                height: _headerHeight,
-                child: HeaderWidget(_headerHeight, true, Icons.password_rounded),
+              SizedBox(
+                height: headerHeight,
+                child: HeaderWidget(headerHeight, true, Icons.password_rounded),
               ),
               SafeArea(
                 child: Container(
-                  margin: EdgeInsets.fromLTRB(25, 10, 25, 10),
-                  padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                  margin: const EdgeInsets.fromLTRB(25, 10, 25, 10),
+                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                   child: Column(
                     children: [
                       Container(
                         alignment: Alignment.topLeft,
-                        margin: EdgeInsets.fromLTRB(20, 0, 20, 0),
+                        margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                          children: const [
                             Text('Forgot Password?',
                               style: TextStyle(
                                   fontSize: 35,
@@ -71,19 +72,20 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                           ],
                         ),
                       ),
-                      SizedBox(height: 40.0),
+                      const SizedBox(height: 40.0),
                       Form(
                         key: _formKey,
                         child: Column(
                           children: <Widget>[
                             Container(
+                              decoration: ThemeHelper().inputBoxDecorationShadow(),
                               child: TextFormField(
                                 decoration: ThemeHelper().textInputDecoration("Email", "Enter your email"),
                                 validator: (val){
                                   if(val!.isEmpty){
                                     return "Email can't be empty";
                                   }
-                                  else if(!RegExp(r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$").hasMatch(val)){
+                                  else if(!EmailValidator.validate(val)){
                                     return "Enter a valid email address";
                                   }
                                   return null;
@@ -92,9 +94,8 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                     setState(() => email = val);
                                   }
                               ),
-                              decoration: ThemeHelper().inputBoxDecorationShadow(),
                             ),
-                            SizedBox(height: 40.0),
+                            const SizedBox(height: 40.0),
                             Container(
                               decoration: ThemeHelper().buttonBoxDecoration(context),
                               child: ElevatedButton(
@@ -104,7 +105,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                       40, 10, 40, 10),
                                   child: Text(
                                     "Send".toUpperCase(),
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,

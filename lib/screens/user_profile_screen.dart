@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/user_home_screen.dart';
+import 'package:fyp_2/screens/wrapper.dart';
 
 import '../services/auth.dart';
 import '../widgets/header_widget.dart';
@@ -82,6 +83,7 @@ class _UserProfileState extends State<UserProfile> {
                 title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.SignOut();
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                 },
               ),
             ],

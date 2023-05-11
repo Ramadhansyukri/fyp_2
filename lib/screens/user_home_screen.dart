@@ -1,6 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/user_profile_screen.dart';
+import 'package:fyp_2/screens/wrapper.dart';
 import 'package:fyp_2/services/auth.dart';
 
 import '../widgets/header_widget.dart';
@@ -14,8 +14,8 @@ class UserHome extends StatefulWidget {
 
 class _UserHomeState extends State<UserHome> {
 
-  double  _drawerIconSize = 24;
-  double _drawerFontSize = 17;
+  final double  _drawerIconSize = 24;
+  final double _drawerFontSize = 17;
 
   final AuthService _auth = AuthService();
 
@@ -23,11 +23,11 @@ class _UserHomeState extends State<UserHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Home",
+        title: const Text("Home",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         elevation: 0.5,
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
         flexibleSpace:Container(
           decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -44,7 +44,7 @@ class _UserHomeState extends State<UserHome> {
               gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  stops: [0.0, 1.0],
+                  stops: const [0.0, 1.0],
                   colors: [
                     Theme.of(context).primaryColor.withOpacity(0.2),
                     Theme.of(context).colorScheme.secondary.withOpacity(0.5),
@@ -59,13 +59,13 @@ class _UserHomeState extends State<UserHome> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    stops: [0.0, 1.0],
+                    stops: const [0.0, 1.0],
                     colors: [ Theme.of(context).primaryColor,Theme.of(context).colorScheme.secondary,],
                   ),
                 ),
                 child: Container(
                   alignment: Alignment.bottomLeft,
-                  child: Text("Food Delivery",
+                  child: const Text("Food Delivery",
                     style: TextStyle(fontSize: 25,color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -74,7 +74,7 @@ class _UserHomeState extends State<UserHome> {
                 leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => UserProfile()), );
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => const UserProfile()), );
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -83,14 +83,15 @@ class _UserHomeState extends State<UserHome> {
                 title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.SignOut();
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                 },
               ),
             ],
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Container(height: 100, child: HeaderWidget(100,false,Icons.house_rounded),)
+      body: const SingleChildScrollView(
+        child: SizedBox(height: 100, child: HeaderWidget(100,false,Icons.house_rounded),)
       ),
     );
   }

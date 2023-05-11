@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fyp_2/models/user_models.dart';
+import 'package:fyp_2/services/database.dart';
 
 class AuthService{
 
@@ -35,11 +36,14 @@ class AuthService{
     }
   }
 
-  Future registerWithEmailAndPassword(String email, String password) async {
+  Future registerWithEmailAndPassword(String email, String password, String username, String phoneNo, String usertype) async {
     try{
       UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
       User? user = result.user;
-      return _userFromFirebaseUser(user!);
+
+      await DatabaseService(uid: user!.uid).setuserdata(username, email, phoneNo, usertype);
+
+      return _userFromFirebaseUser(user);
     }catch(e){
       return null;
     }
@@ -57,9 +61,17 @@ class AuthService{
     try{
       await FirebaseAuth.instance
           .sendPasswordResetEmail(email: email);
-    } on FirebaseAuthException catch (e){
-      print(e);
+    } on FirebaseAuthException catch(e){
+      return e;
     }
+  }
 
+  Future sendVerificationEmail() async{
+    try{
+      final user = FirebaseAuth.instance.currentUser!;
+      await user.sendEmailVerification();
+    } on FirebaseAuthException catch(e){
+      return e;
+    }
   }
 }
