@@ -15,17 +15,6 @@ class AuthService{
         .map((User? user) => _userFromFirebaseUser(user!));
   }
 
-  Future SignInAnon() async {
-    try {
-      UserCredential result = await _auth.signInAnonymously();
-      User? user = result.user;
-      return user;
-    } catch (e) {
-      print(e.toString());
-      return null;
-    }
-  }
-
   Future signInWithEmailAndPassword(String email, String password) async {
     try{
       UserCredential result = await _auth.signInWithEmailAndPassword(email: email, password: password);
@@ -39,11 +28,10 @@ class AuthService{
   Future registerWithEmailAndPassword(String email, String password, String username, String phoneNo, String usertype) async {
     try{
       UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
-      User? user = result.user;
 
-      await DatabaseService(uid: user!.uid).setuserdata(username, email, phoneNo, usertype);
+      await DatabaseService(uid: result.user!.uid).setuserdata(username, email, phoneNo, usertype);
 
-      return _userFromFirebaseUser(user);
+      return null;
     }catch(e){
       return null;
     }
@@ -59,7 +47,7 @@ class AuthService{
 
   Future resetPassword(String email) async {
     try{
-      await FirebaseAuth.instance
+      await _auth
           .sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch(e){
       return e;

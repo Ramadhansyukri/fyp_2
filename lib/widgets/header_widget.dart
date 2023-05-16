@@ -1,4 +1,4 @@
-// This widget will draw header section of all page. Wich you will get with the project source code.
+// This widget will draw header section of all page. Which you will get with the project source code.
 
 import 'package:flutter/material.dart';
 
