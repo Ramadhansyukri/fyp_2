@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fyp_2/screens/user_home_screen.dart';
+import 'package:fyp_2/screens/wrapper.dart';
 import 'package:fyp_2/shared/theme_helper.dart';
 import 'package:fyp_2/widgets/header_widget.dart';
+
+import '../services/auth.dart';
 
 class VerifyEmail extends StatefulWidget {
   const VerifyEmail({Key? key}) : super(key: key);
@@ -16,11 +18,11 @@ class VerifyEmail extends StatefulWidget {
 
 class _VerifyEmailState extends State<VerifyEmail> {
   bool isEmailVerified = false;
-  bool canResendEmail = false;
+  bool canResendEmail = true;
   final _formKey = GlobalKey<FormState>();
   Timer? timer;
+  final AuthService _auth = AuthService();
 
-  get onClickedRegister => null;
   double headerHeight = 300;
 
   @override
@@ -30,33 +32,12 @@ class _VerifyEmailState extends State<VerifyEmail> {
     isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
 
     if(!isEmailVerified){
-      sendVerificationEmail();
       timer = Timer.periodic(
         const Duration(seconds: 3),
           (_) =>checkEmailVerified(),
       );
 
     }
-  }
-
-  Future sendVerificationEmail() async {
-    try{
-      Fluttertoast.showToast(
-          msg: "Email sent successfully",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          fontSize: 16.0
-      );
-      final user = FirebaseAuth.instance.currentUser!;
-      await user.sendEmailVerification();
-
-      setState(() => canResendEmail = false);
-      await Future.delayed(const Duration(seconds: 60));
-      setState(() => canResendEmail = true);
-    } catch(e){
-      Fluttertoast.showToast(msg: e.toString());
-    }
-
   }
 
   @override
@@ -130,9 +111,12 @@ class _VerifyEmailState extends State<VerifyEmail> {
                             decoration: ThemeHelper().buttonBoxDecoration(context),
                             child: ElevatedButton(
                               style: ThemeHelper().buttonStyle(),
-                              onPressed: canResendEmail ? (){
-                                if(_formKey.currentState!.validate()) {
-                                  sendVerificationEmail();
+                              onPressed: canResendEmail ? () async{
+                                if(_formKey.currentState!.validate()){
+                                  _auth.sendVerificationEmail();
+                                  setState(() => canResendEmail = false);
+                                  await Future.delayed(const Duration(seconds: 60));
+                                  setState(() => canResendEmail = true);
                                 }
                               } : null,
                               child: Padding(
@@ -153,7 +137,10 @@ class _VerifyEmailState extends State<VerifyEmail> {
                             style: ElevatedButton.styleFrom(
                               minimumSize: const Size(100, 50),
                             ),
-                            onPressed: () => FirebaseAuth.instance.signOut(),
+                            onPressed: () {
+                              _auth.SignOut();
+                              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Wrapper()));
+                            },
                             child: Padding(
                               padding: const EdgeInsets.fromLTRB(
                                   40, 10, 40, 10),

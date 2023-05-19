@@ -63,29 +63,17 @@ class ThemeHelper{
         ),
       ),
       minimumSize: MaterialStateProperty.all(const Size(50, 50)),
-      backgroundColor: MaterialStateProperty.all(Colors.transparent),
+      backgroundColor: MaterialStateProperty.resolveWith<Color>(
+            (Set<MaterialState> states) {
+          // Determine the background color based on the button's state
+          return states.contains(MaterialState.disabled)
+              ? Colors.grey // Disabled state
+              : Colors.transparent; // Enabled state
+        },
+      ),
       shadowColor: MaterialStateProperty.all(Colors.transparent),
     );
   }
 
-  AlertDialog alertDialog(String title, String content, BuildContext context) {
-    return AlertDialog(
-      title: Text(title),
-      content: Text(content),
-      actions: [
-        TextButton(
-          child: const Text(
-            "OK",
-            style: TextStyle(color: Colors.white),
-          ),
-          style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Colors.black38)),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ],
-    );
-  }
 
 }

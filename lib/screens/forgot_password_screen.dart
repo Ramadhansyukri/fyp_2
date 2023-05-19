@@ -1,5 +1,6 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp_2/screens/wrapper.dart';
 
 import '../services/auth.dart';
 import '../shared/theme_helper.dart';
@@ -16,6 +17,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
   final _formKey = GlobalKey<FormState>();
   final AuthService _auth = AuthService();
+  bool canResendEmail = true;
 
   var email = '';
 
@@ -100,6 +102,14 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                               decoration: ThemeHelper().buttonBoxDecoration(context),
                               child: ElevatedButton(
                                 style: ThemeHelper().buttonStyle(),
+                                onPressed: canResendEmail ? () async {
+                                  if(_formKey.currentState!.validate()) {
+                                    await _auth.resetPassword(email);
+                                    setState(() => canResendEmail = false);
+                                    await Future.delayed(const Duration(seconds: 60));
+                                    setState(() => canResendEmail = true);
+                                  }
+                                } : null,
                                 child: Padding(
                                   padding: const EdgeInsets.fromLTRB(
                                       40, 10, 40, 10),
@@ -112,13 +122,27 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                     ),
                                   ),
                                 ),
-                                onPressed: () async {
-                                  if(_formKey.currentState!.validate()) {
-                                    await _auth.resetPassword(email);
-                                  }
-                                },
                               ),
                             ),
+                            const SizedBox(height: 40.0),
+                            TextButton(
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(100, 50),
+                              ),
+                              onPressed: () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Wrapper())),
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                    40, 10, 40, 10),
+                                child: Text(
+                                  "Cancel".toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blueGrey,
+                                  ),
+                                ),
+                              ),
+                            )
                           ],
                         ),
                       )

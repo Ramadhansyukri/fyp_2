@@ -1,11 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:fyp_2/screens/verify_email_screen.dart';
 import 'package:fyp_2/shared/theme_helper.dart';
 
-import '../services/database.dart';
+import '../services/auth.dart';
 import '../widgets/header_widget.dart';
 import 'package:email_validator/email_validator.dart';
 
@@ -24,6 +21,7 @@ class UserReg extends StatefulWidget {
 class _UserRegState extends State<UserReg> {
 
   final _formKey = GlobalKey<FormState>();
+  final AuthService _auth = AuthService();
 
   final _usertypelist = ["User", "Restaurant", "Rider"];
   String? _usertype = "User";
@@ -187,7 +185,7 @@ class _UserRegState extends State<UserReg> {
                             ),
                             onPressed: () async {
                               if (_formKey.currentState!.validate()){
-                                await registerWithEmailAndPassword(email, password, username, phoneNo, _usertype!, context);
+                                await _auth.registerWithEmailAndPassword(email, password, username, phoneNo, _usertype!, context);
                               }
                             },
                           ),
@@ -221,24 +219,4 @@ class _UserRegState extends State<UserReg> {
   }
 }
 
-Future registerWithEmailAndPassword(String email, String password, String username, String phoneNo, String usertype, BuildContext context) async {
-  showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator())
-  );
 
-    await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password)
-    .then((value) => {
-    DatabaseService(uid: value.user!.uid).setuserdata(username, email, phoneNo, usertype),
-      Fluttertoast.showToast(
-          msg: "Successfully signed up",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          fontSize: 16.0
-      ),
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const VerifyEmail()))
-    }).catchError((onError){
-      Fluttertoast.showToast(msg: onError!.message);
-    });
-}
