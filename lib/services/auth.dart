@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fyp_2/models/user_models.dart';
-import 'package:fyp_2/services/database.dart';
 
 class AuthService{
 
@@ -10,29 +10,21 @@ class AuthService{
     return user != null ? Users(uid: user.uid) : null;
   }
 
-  Stream<Users?> get user {
-    return _auth.authStateChanges()
-        .map((User? user) => _userFromFirebaseUser(user!));
-  }
-
-  Future signInWithEmailAndPassword(String email, String password) async {
+  Future signIn(String email, String password) async {
     try{
       UserCredential result = await _auth.signInWithEmailAndPassword(email: email, password: password);
       User? user = result.user;
+
+      Fluttertoast.showToast(
+          msg: "Signed in successfully",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          fontSize: 16.0
+      );
+
       return _userFromFirebaseUser(user!);
     }catch(e){
-      return null;
-    }
-  }
-
-  Future registerWithEmailAndPassword(String email, String password, String username, String phoneNo, String usertype) async {
-    try{
-      UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
-
-      await DatabaseService(uid: result.user!.uid).setuserdata(username, email, phoneNo, usertype);
-
-      return null;
-    }catch(e){
+      Fluttertoast.showToast(msg: e.toString());
       return null;
     }
   }
@@ -54,12 +46,4 @@ class AuthService{
     }
   }
 
-  Future sendVerificationEmail() async{
-    try{
-      final user = FirebaseAuth.instance.currentUser!;
-      await user.sendEmailVerification();
-    } on FirebaseAuthException catch(e){
-      return e;
-    }
-  }
 }

@@ -3,7 +3,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/services/auth.dart';
 import 'package:fyp_2/widgets/header_widget.dart';
-import 'package:fyp_2/shared/loading.dart';
 import 'package:fyp_2/shared/theme_helper.dart';
 
 import 'forgot_password_screen.dart';
@@ -22,7 +21,6 @@ class _UserSignInState extends State<UserSignIn> {
 
   final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
-  bool loading = false;
   final double _headerHeight = 250;
 
   var email = '';
@@ -31,7 +29,7 @@ class _UserSignInState extends State<UserSignIn> {
 
   @override
   Widget build(BuildContext context) {
-    return loading ? Loading() : Scaffold(
+    return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
@@ -111,14 +109,7 @@ class _UserSignInState extends State<UserSignIn> {
                                   ),
                                   onPressed: () async{
                                     if (_formKey.currentState!.validate()){
-                                      setState(() => loading = true);
-                                      dynamic result = await _auth.signInWithEmailAndPassword(email, password);
-                                      if(result == null){
-                                        setState(() {
-                                          error = 'Please Enter a Valid Credential';
-                                          loading = false;
-                                        });
-                                      }
+                                      await _auth.signIn(email, password);
                                     }
                                   },
                                 ),
@@ -157,3 +148,4 @@ class _UserSignInState extends State<UserSignIn> {
     );
   }
 }
+

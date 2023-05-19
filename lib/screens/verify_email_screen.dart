@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fyp_2/screens/user_sign_in.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:fyp_2/screens/user_home_screen.dart';
 import 'package:fyp_2/shared/theme_helper.dart';
 import 'package:fyp_2/widgets/header_widget.dart';
-import 'package:fyp_2/services/auth.dart';
 
 class VerifyEmail extends StatefulWidget {
   const VerifyEmail({Key? key}) : super(key: key);
@@ -16,8 +16,8 @@ class VerifyEmail extends StatefulWidget {
 
 class _VerifyEmailState extends State<VerifyEmail> {
   bool isEmailVerified = false;
+  bool canResendEmail = false;
   final _formKey = GlobalKey<FormState>();
-  final AuthService _auth = AuthService();
   Timer? timer;
 
   get onClickedRegister => null;
@@ -30,12 +30,33 @@ class _VerifyEmailState extends State<VerifyEmail> {
     isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
 
     if(!isEmailVerified){
+      sendVerificationEmail();
       timer = Timer.periodic(
-        Duration(seconds: 60),
+        const Duration(seconds: 3),
           (_) =>checkEmailVerified(),
       );
 
     }
+  }
+
+  Future sendVerificationEmail() async {
+    try{
+      Fluttertoast.showToast(
+          msg: "Email sent successfully",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          fontSize: 16.0
+      );
+      final user = FirebaseAuth.instance.currentUser!;
+      await user.sendEmailVerification();
+
+      setState(() => canResendEmail = false);
+      await Future.delayed(const Duration(seconds: 60));
+      setState(() => canResendEmail = true);
+    } catch(e){
+      Fluttertoast.showToast(msg: e.toString());
+    }
+
   }
 
   @override
@@ -58,7 +79,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
 
   @override
   Widget build(BuildContext context) => isEmailVerified
-      ?UserSignIn(onClickedRegister: onClickedRegister)
+      ? const UserHome()
       : Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -66,7 +87,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
           children: [
             SizedBox(
               height: headerHeight,
-              child: HeaderWidget(headerHeight, true, Icons.password_rounded),
+              child: HeaderWidget(headerHeight, true, Icons.email),
             ),
             SafeArea(
               child: Container(
@@ -81,18 +102,9 @@ class _VerifyEmailState extends State<VerifyEmail> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: const [
-                          Text('Forgot Password?',
+                          Text('Please verify your email',
                             style: TextStyle(
                                 fontSize: 35,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black54
-                            ),
-                            // textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: 10,),
-                          Text('Enter the email address associated with your account.',
-                            style: TextStyle(
-                              // fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black54
                             ),
@@ -118,6 +130,11 @@ class _VerifyEmailState extends State<VerifyEmail> {
                             decoration: ThemeHelper().buttonBoxDecoration(context),
                             child: ElevatedButton(
                               style: ThemeHelper().buttonStyle(),
+                              onPressed: canResendEmail ? (){
+                                if(_formKey.currentState!.validate()) {
+                                  sendVerificationEmail();
+                                }
+                              } : null,
                               child: Padding(
                                 padding: const EdgeInsets.fromLTRB(
                                     40, 10, 40, 10),
@@ -130,11 +147,24 @@ class _VerifyEmailState extends State<VerifyEmail> {
                                   ),
                                 ),
                               ),
-                              onPressed: () async {
-                                if(_formKey.currentState!.validate()) {
-                                  await _auth.sendVerificationEmail();
-                                }
-                              },
+                            ),
+                          ),
+                          TextButton(
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(100, 50),
+                            ),
+                            onPressed: () => FirebaseAuth.instance.signOut(),
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                  40, 10, 40, 10),
+                              child: Text(
+                                "Cancel".toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueGrey,
+                                ),
+                              ),
                             ),
                           ),
                         ],
