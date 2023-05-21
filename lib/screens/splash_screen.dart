@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 
 class SplashScreen extends StatefulWidget {
-  SplashScreen({Key? key, required this.title}) : super(key: key);
+  const SplashScreen({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(milliseconds: 2000), (){
       setState(() {
         Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => Wrapper()), (route) => false);
+            MaterialPageRoute(builder: (context) => const Wrapper()), (route) => false);
       });
     });
 
@@ -54,11 +54,6 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Container(
             height: 140.0,
             width: 140.0,
-            child: Center(
-              child: ClipOval(
-                child: Icon(Icons.android_outlined, size: 128,), //put your logo here
-              ),
-            ),
             decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white,
@@ -70,6 +65,11 @@ class _SplashScreenState extends State<SplashScreen> {
                     spreadRadius: 2.0,
                   )
                 ]
+            ),
+            child: const Center(
+              child: ClipOval(
+                child: Icon(Icons.android_outlined, size: 128,), //put your logo here
+              ),
             ),
           ),
         ),

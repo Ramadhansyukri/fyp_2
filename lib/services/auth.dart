@@ -10,16 +10,11 @@ class AuthService{
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future registerWithEmailAndPassword(String email, String password, String username, String phoneNo, String usertype, BuildContext context) async {
-    showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator())
-    );
 
     try{
       dynamic value = await _auth.createUserWithEmailAndPassword(email: email, password: password);
 
-      UserDatabaseService(uid: value.user!.uid).setuserdata(username, email, phoneNo, usertype);
+      UserDatabaseService(uid: value.user!.uid).setUser(username, email, phoneNo, usertype);
       Fluttertoast.showToast(
       msg: "Successfully signed up",
       toastLength: Toast.LENGTH_SHORT,

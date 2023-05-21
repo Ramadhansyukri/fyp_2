@@ -7,9 +7,9 @@ class UserDatabaseService{
   final String uid;
   UserDatabaseService({ required this.uid});
 
-  final CollectionReference userdata = FirebaseFirestore.instance.collection('users');
+  final userdata = FirebaseFirestore.instance.collection('users');
 
-  Future setuserdata(String username, String email, String phoneNo, String usertype) async {
+  Future setUser(String username, String email, String phoneNo, String usertype) async {
 
     final userData = Users(
       uid: uid,
@@ -20,5 +20,15 @@ class UserDatabaseService{
     );
 
     await userdata.doc(uid).set(userData.toJson());
+  }
+
+  Future<Users?> getUser() async {
+    final userDoc = userdata.doc(uid);
+    final snapshot = await userDoc.get();
+
+    if(snapshot.exists) {
+      return Users.fromJson(snapshot.data()!);
+    }
+    return null;
   }
 }

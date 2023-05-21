@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fyp_2/screens/user_home_screen.dart';
+import 'package:fyp_2/screens/home_screen.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 import 'package:fyp_2/shared/theme_helper.dart';
 import 'package:fyp_2/widgets/header_widget.dart';
@@ -60,7 +60,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
 
   @override
   Widget build(BuildContext context) => isEmailVerified
-      ? const UserHome()
+      ? const Home()
       : Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(

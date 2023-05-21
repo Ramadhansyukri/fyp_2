@@ -23,8 +23,8 @@ class _UserRegState extends State<UserReg> {
   final _formKey = GlobalKey<FormState>();
   final AuthService _auth = AuthService();
 
-  final _usertypelist = ["User", "Restaurant", "Rider"];
-  String? _usertype = "User";
+  final _usertypelist = ["Customer", "Restaurant", "Rider"];
+  String? _usertype = "Customer";
 
   var email = '';
   var password = '';
@@ -184,6 +184,11 @@ class _UserRegState extends State<UserReg> {
                               ),
                             ),
                             onPressed: () async {
+                              showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) => const Center(child: CircularProgressIndicator())
+                              );
                               if (_formKey.currentState!.validate()){
                                 await _auth.registerWithEmailAndPassword(email, password, username, phoneNo, _usertype!, context);
                               }
