@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/models/user_models.dart';
+import 'package:fyp_2/screens/restaurant_home_screen.dart';
 import 'package:fyp_2/screens/rider_home_screen.dart';
 import 'package:fyp_2/screens/user_home_screen.dart';
 import 'package:fyp_2/screens/wrapper.dart';
@@ -36,7 +37,7 @@ class _HomeState extends State<Home> {
             }else if("${user.usertype}" == "Rider"){
               return RiderHome(user: user);
             }else {
-              return RiderHome(user: user);
+              return RestaurantHome(user: user);
             }
           } else {
             return Center(
