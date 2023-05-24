@@ -2,22 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/home_screen.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 
-import '../models/user_models.dart';
-import '../services/auth.dart';
-import '../widgets/header_widget.dart';
+import '../../models/user_models.dart';
+import '../../services/auth.dart';
+import '../../widgets/header_widget.dart';
+import 'add_menu_screen.dart';
 
-class UserProfile extends StatefulWidget {
+class RestaurantProfile extends StatefulWidget {
   // const UserProfile({Key? key}) : super(key: key);
 
   final Users? user;
 
-  const UserProfile({Key? key,required this.user}) : super(key: key);
+  const RestaurantProfile({Key? key,required this.user}) : super(key: key);
 
   @override
-  State<UserProfile> createState() => _UserProfileState();
+  State<RestaurantProfile> createState() => _RestaurantProfileState();
 }
 
-class _UserProfileState extends State<UserProfile> {
+class _RestaurantProfileState extends State<RestaurantProfile> {
 
   final double  _drawerIconSize = 24;
   final double _drawerFontSize = 17;
@@ -85,10 +86,27 @@ class _UserProfileState extends State<UserProfile> {
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
               ListTile(
+                leading: Icon(Icons.restaurant_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Add Menu',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => AddMenu(user: widget.user)), );
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
                 leading: Icon(Icons.logout_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.SignOut();
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.person_remove_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Delete Account',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () async {
+                  await _auth.deleteAccount(widget.user!.uid, widget.user!.usertype);
                   Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                 },
               ),

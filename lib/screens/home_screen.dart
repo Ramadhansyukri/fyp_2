@@ -1,11 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/models/user_models.dart';
-import 'package:fyp_2/screens/restaurant_home_screen.dart';
-import 'package:fyp_2/screens/rider_home_screen.dart';
-import 'package:fyp_2/screens/user_home_screen.dart';
+import 'package:fyp_2/screens/restaurant/restaurant_home_screen.dart';
+import 'package:fyp_2/screens/rider/rider_home_screen.dart';
+import 'package:fyp_2/screens/user/user_home_screen.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 import 'package:fyp_2/services/database.dart';
+
+import '../services/auth.dart';
 
 
 class Home extends StatefulWidget {
@@ -18,6 +20,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   String uid = FirebaseAuth.instance.currentUser!.uid;
+  final AuthService _auth = AuthService();
 
 
   @override
@@ -41,23 +44,48 @@ class _HomeState extends State<Home> {
             }
           } else {
             return Center(
-              child: ElevatedButton(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(40, 10, 40, 10),
-                  child: Text(
-                    "Log Out".toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+              child: Column(
+                children: [
+                  Center(
+                    child: ElevatedButton(
+                      child: Padding(
+                          padding: const EdgeInsets.fromLTRB(40, 10, 40, 10),
+                          child: Text(
+                            "Log Out".toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              ),
+                            ),
+                          ),
+                      onPressed: () async {
+                      FirebaseAuth.instance.signOut();
+                      Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
+                      },
                     ),
                   ),
-                ),
-                onPressed: () async {
-                  FirebaseAuth.instance.signOut();
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
-                },
-              ),
+                  Center(
+                    child: ElevatedButton(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(40, 10, 40, 10),
+                        child: Text(
+                          "Delete Account".toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      onPressed: () async {
+                        _auth.deleteAccount(uid,snapshot.data!.usertype);
+                        Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
+                      },
+                    ),
+                  ),
+                ],
+              )
             );
           }
         },

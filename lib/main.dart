@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
           primaryColor: _primaryColor,
           scaffoldBackgroundColor: Colors.grey.shade100, colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.grey).copyWith(secondary: _accentColor),
         ),
-        home: SplashScreen(title: "Food Delivery"),
+        home: const SplashScreen(),
       );
   }
 }

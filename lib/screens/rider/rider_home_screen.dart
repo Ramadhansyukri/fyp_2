@@ -1,34 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 
-import '../models/user_models.dart';
-import '../services/auth.dart';
-import '../widgets/header_widget.dart';
-import 'user_profile_screen.dart';
+import '../../models/user_models.dart';
+import '../../services/auth.dart';
+import '../../widgets/header_widget.dart';
+import '../user/user_profile_screen.dart';
 
-class RestaurantHome extends StatefulWidget {
+class RiderHome extends StatefulWidget {
   //const RiderHome({Key? key}) : super(key: key);
 
-  const RestaurantHome({Key? key,required this.user}) : super(key: key);
+  const RiderHome({Key? key,required this.user}) : super(key: key);
   final Users? user;
 
   @override
-  State<RestaurantHome> createState() => _RiderHomeState();
+  State<RiderHome> createState() => _RiderHomeState();
 }
 
-class _RiderHomeState extends State<RestaurantHome> {
+class _RiderHomeState extends State<RiderHome> {
   final double  _drawerIconSize = 24;
   final double _drawerFontSize = 17;
 
   final AuthService _auth = AuthService();
 
-  get user => null;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Restaurant Home",
+        title: const Text("Rider Home",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         elevation: 0.5,
@@ -54,8 +53,8 @@ class _RiderHomeState extends State<RestaurantHome> {
                     Theme.of(context).primaryColor.withOpacity(0.2),
                     Theme.of(context).colorScheme.secondary.withOpacity(0.5),
                   ]
-              )
-          ) ,
+                )
+            ) ,
           child: ListView(
             children: [
               DrawerHeader(
@@ -93,10 +92,10 @@ class _RiderHomeState extends State<RestaurantHome> {
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
               ListTile(
-                leading: Icon(Icons.logout_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                leading: Icon(Icons.person_remove_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Delete Account',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
-                  await _auth.SignOut();
+                  await _auth.deleteAccount(widget.user!.uid, widget.user!.usertype);
                   Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                 },
               ),

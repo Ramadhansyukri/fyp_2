@@ -194,7 +194,7 @@ class _UserRegState extends State<UserReg> {
                               }
                             },
                           ),
-                        ),//Register button
+                        ),
                         Container(
                           margin: const EdgeInsets.fromLTRB(10,20,10,20),
                           child: Text.rich(

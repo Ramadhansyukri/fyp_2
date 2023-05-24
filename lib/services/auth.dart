@@ -20,15 +20,16 @@ class AuthService{
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       fontSize: 20.0,
-      backgroundColor: Colors.transparent,
-      textColor: Colors.green
+      backgroundColor: Colors.green.withOpacity(0.8),
+      textColor: Colors.white
       );
     Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const VerifyEmail()));
     }catch(e){
       Fluttertoast.showToast(
       msg: e.toString(),
-      backgroundColor: Colors.transparent,
-      textColor: Colors.red
+          fontSize: 20.0,
+          backgroundColor: Colors.redAccent.withOpacity(0.8),
+          textColor: Colors.white
       );
     }
 
@@ -43,14 +44,15 @@ class AuthService{
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           fontSize: 20.0,
-          backgroundColor: Colors.transparent,
-          textColor: Colors.green
+          backgroundColor: Colors.green.withOpacity(0.8),
+          textColor: Colors.white
       );
     }catch(e){
       Fluttertoast.showToast(
           msg: e.toString(),
-          backgroundColor: Colors.transparent,
-          textColor: Colors.red
+          fontSize: 20.0,
+          backgroundColor: Colors.redAccent.withOpacity(0.8),
+          textColor: Colors.white
       );
     }
   }
@@ -63,14 +65,15 @@ class AuthService{
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           fontSize: 20.0,
-          backgroundColor: Colors.transparent,
-          textColor: Colors.green
+          backgroundColor: Colors.green.withOpacity(0.8),
+          textColor: Colors.white
       );
     }catch (e){
       Fluttertoast.showToast(
           msg: e.toString(),
-          backgroundColor: Colors.transparent,
-          textColor: Colors.red
+          fontSize: 20.0,
+          backgroundColor: Colors.redAccent.withOpacity(0.8),
+          textColor: Colors.white
       );
     }
   }
@@ -83,14 +86,15 @@ class AuthService{
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           fontSize: 20.0,
-          backgroundColor: Colors.transparent,
-          textColor: Colors.green
+          backgroundColor: Colors.green.withOpacity(0.8),
+          textColor: Colors.white
       );
     } on FirebaseAuthException catch(e){
       Fluttertoast.showToast(
           msg: e.toString(),
-          backgroundColor: Colors.transparent,
-          textColor: Colors.red
+          fontSize: 20.0,
+          backgroundColor: Colors.redAccent.withOpacity(0.8),
+          textColor: Colors.white
       );
     }
   }
@@ -104,17 +108,46 @@ class AuthService{
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           fontSize: 20.0,
-          backgroundColor: Colors.transparent,
-          textColor: Colors.green
+          backgroundColor: Colors.green.withOpacity(0.8),
+          textColor: Colors.white
       );
     } catch(e){
       Fluttertoast.showToast(
           msg: e.toString(),
-          backgroundColor: Colors.transparent,
-          textColor: Colors.red
+          fontSize: 20.0,
+          backgroundColor: Colors.redAccent.withOpacity(0.8),
+          textColor: Colors.white
       );
     }
 
+  }
+
+  Future deleteAccount(String? userId, String usertype) async {
+    try {
+
+      String uid = userId.toString();
+      // Delete user data from Firestore
+      await UserDatabaseService(uid: uid).deleteAccount(usertype);
+      // Delete user account from FirebaseAuth
+      await _auth.currentUser?.delete();
+
+      Fluttertoast.showToast(
+          msg: "Account deleted",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          fontSize: 20.0,
+          backgroundColor: Colors.green.withOpacity(0.8),
+          textColor: Colors.white
+      );
+
+    } catch (e) {
+      Fluttertoast.showToast(
+          msg: e.toString(),
+          fontSize: 20.0,
+          backgroundColor: Colors.redAccent.withOpacity(0.8),
+          textColor: Colors.white
+      );
+    }
   }
 
 }
