@@ -1,6 +1,9 @@
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/shared/theme_helper.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../services/auth.dart';
 import '../widgets/header_widget.dart';
@@ -30,6 +33,13 @@ class _UserRegState extends State<UserReg> {
   var password = '';
   var username = '';
   var phoneNo = '';
+
+  File? _image;
+  var imageUrl = "";
+
+  var addressLine1 = '';
+  var addressLine2 = '';
+  var addressLine3 = '';
 
   @override
   Widget build(BuildContext context) {
@@ -167,6 +177,112 @@ class _UserRegState extends State<UserReg> {
                               "User Type",
                               ""),
                         ),//User type
+                        if (_usertype == "Restaurant") ...[
+                          const SizedBox(height: 30,),
+                          const Text(
+                            "Restaurant registration",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 30,
+                            ),
+                          ),
+                          const SizedBox(height: 30,),
+                          Container(
+                            height:200,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              color: Colors.white,
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 20,
+                                  offset: Offset(5, 5),
+                                ),
+                              ],
+                            ),
+                            child: _image != null
+                                ? ClipRRect(
+                              borderRadius: BorderRadius.circular(30),
+                              child: Image.file(_image!,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                                : const Center(
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.grey,
+                                size: 80.0,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 30,),
+                          Container(
+                            decoration: ThemeHelper().buttonBoxDecoration(context),
+                            child: ElevatedButton(
+                              style: ThemeHelper().buttonStyle(),
+                              child: const Padding(
+                                padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
+                                child: Icon(Icons.add_photo_alternate, color: Colors.white,),
+                              ),
+                              onPressed: () async {
+                                ImagePicker imagePicker = ImagePicker();
+                                XFile? file = await imagePicker.pickImage(source: ImageSource.gallery);
+                                if(file == null) return;
+                                setState(() {
+                                  _image = File(file.path);
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 30,),
+                          Container(
+                            decoration: ThemeHelper().inputBoxDecorationShadow(),
+                            child: TextFormField(
+                                decoration: ThemeHelper().textInputDecoration('Address Line 1', 'Address Line 1'),
+                                validator: (val){
+                                  if(val!.isEmpty){
+                                    return "Field can't be empty";
+                                  }
+                                  return null;
+                                },
+                                onChanged: (val) {
+                                  setState(() => addressLine1 = val);
+                                }
+                            ),
+                          ),
+                          const SizedBox(height: 20.0),
+                          Container(
+                            decoration: ThemeHelper().inputBoxDecorationShadow(),
+                            child: TextFormField(
+                                decoration: ThemeHelper().textInputDecoration("Address Line 2", "Address Line 2"),
+                                validator: (val){
+                                  if(val!.isEmpty){
+                                    return "Field can't be empty";
+                                  }
+                                  return null;
+                                },
+                                onChanged: (val) {
+                                  setState(() => addressLine2 = val);
+                                }
+                            ),
+                          ),
+                          const SizedBox(height: 20.0),
+                          Container(
+                            decoration: ThemeHelper().inputBoxDecorationShadow(),
+                            child: TextFormField(
+                                decoration: ThemeHelper().textInputDecoration("Address Line 3", "Address Line 3"),
+                                validator: (val){
+                                  if(val!.isEmpty){
+                                    return "Field can't be empty";
+                                  }
+                                  return null;
+                                },
+                                onChanged: (val) {
+                                  setState(() => addressLine3 = val);
+                                }
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 20.0),
                         Container(
                           decoration: ThemeHelper().buttonBoxDecoration(context),
@@ -190,7 +306,21 @@ class _UserRegState extends State<UserReg> {
                                   builder: (context) => const Center(child: CircularProgressIndicator())
                               );
                               if (_formKey.currentState!.validate()){
-                                await _auth.registerWithEmailAndPassword(email, password, username, phoneNo, _usertype!, context);
+
+                                if(_usertype == "Restaurant"){
+                                  String filename = DateTime.now().millisecondsSinceEpoch.toString();
+
+                                  Reference referenceRoot = FirebaseStorage.instance.ref().child('restimages');
+                                  Reference referenceImageToUpload = referenceRoot.child(filename);
+
+                                  await referenceImageToUpload.putFile(_image!);
+                                  imageUrl = await referenceImageToUpload.getDownloadURL();
+                                }
+
+                                await _auth.registerWithEmailAndPassword(
+                                  email, password, username, phoneNo, _usertype!, context,
+                                    imageUrl, addressLine1, addressLine2, addressLine3
+                                );
                               }
                             },
                           ),

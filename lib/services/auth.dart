@@ -9,12 +9,20 @@ class AuthService{
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future registerWithEmailAndPassword(String email, String password, String username, String phoneNo, String usertype, BuildContext context) async {
+  Future registerWithEmailAndPassword(
+      String email, String password, String username, String phoneNo, String usertype, BuildContext context,
+      String imageUrl, String addressLine1, String addressLine2, String addressLine3
+      ) async {
 
     try{
       dynamic value = await _auth.createUserWithEmailAndPassword(email: email, password: password);
 
       UserDatabaseService(uid: value.user!.uid).setUser(username, email, phoneNo, usertype);
+
+      if(usertype == "Restaurant"){
+        await RestDatabaseService(uid: value.user!.uid).setRest(imageUrl, addressLine1, addressLine2, addressLine3);
+      }
+
       Fluttertoast.showToast(
       msg: "Successfully signed up",
       toastLength: Toast.LENGTH_SHORT,
@@ -122,13 +130,18 @@ class AuthService{
 
   }
 
-  Future deleteAccount(String? userId, String usertype) async {
+  Future deleteAccount(String usertype) async {
     try {
 
+      String ? userId = _auth.currentUser?.uid;
       String uid = userId.toString();
-      // Delete user data from Firestore
-      await UserDatabaseService(uid: uid).deleteAccount(usertype);
-      // Delete user account from FirebaseAuth
+      try{
+        await UserDatabaseService(uid: uid).deleteAccount(usertype);
+      }catch(e){
+        print(e);
+      }
+
+
       await _auth.currentUser?.delete();
 
       Fluttertoast.showToast(

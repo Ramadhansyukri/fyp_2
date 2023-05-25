@@ -102,7 +102,7 @@ class _UserHomeState extends State<UserHome> {
                 leading: Icon(Icons.person_remove_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Delete Account',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
-                  await _auth.deleteAccount(widget.user!.uid, widget.user!.usertype);
+                  await _auth.deleteAccount(widget.user!.usertype);
                   Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                 },
               ),
@@ -228,7 +228,7 @@ class _UserHomeState extends State<UserHome> {
                             },
                             child: Container(
                               height: 200,
-                              margin: const EdgeInsets.only(top: 15, left: 15, right: 15, bottom: 15),
+                              margin: const EdgeInsets.all(15),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(30),
                                 color: Colors.white,
@@ -237,8 +237,8 @@ class _UserHomeState extends State<UserHome> {
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(30),
-                                    child: Image.asset(
-                                      'assets/images/Food1.png',
+                                    child: Image.network(
+                                      '${document['imageUrl']}',
                                       fit: BoxFit.cover,
                                       width: double.infinity,
                                       height: double.infinity,

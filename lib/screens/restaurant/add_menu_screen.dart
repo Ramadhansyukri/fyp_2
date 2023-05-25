@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:fyp_2/screens/restaurant/restaurant_home_screen.dart';
 import 'package:fyp_2/screens/restaurant/restaurant_profile_screen.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 import 'package:fyp_2/services/database.dart';
@@ -118,7 +117,7 @@ class _AddMenuState extends State<AddMenu> {
                 leading: Icon(Icons.person_remove_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Delete Account',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
-                  await _auth.deleteAccount(widget.user!.uid, widget.user!.usertype);
+                  await _auth.deleteAccount(widget.user!.usertype);
                   Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                 },
               ),
@@ -155,53 +154,52 @@ class _AddMenuState extends State<AddMenu> {
                               ],
                             ),
                             const SizedBox(height: 30),
-                            SizedBox(
-                                width: 350,
-                                child: Stack(
-                                  children: [
-                                    Container(
-                                      width: 400,
-                                      height: 200,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(),
-                                      ),
-                                      child: _image != null
-                                          ? Center(
-                                            child: Stack(
-                                              children: [
-                                                Image.file(_image!),
-                                                IconButton(
-                                                    onPressed: () async {
-                                                      ImagePicker imagePicker = ImagePicker();
-                                                      XFile? file = await imagePicker.pickImage(source: ImageSource.gallery);
-
-                                                      if(file == null) return;
-
-                                                      setState(() {
-                                                        _image = File(file.path);
-                                                      });
-                                                    },
-                                                    icon: const Icon(Icons.add_photo_alternate)),
-                                              ],
-                                            )
-                                          )
-                                          : Center(
-                                            child: IconButton(
-                                              onPressed: () async {
-                                                ImagePicker imagePicker = ImagePicker();
-                                                XFile? file = await imagePicker.pickImage(source: ImageSource.gallery);
-
-                                                if(file == null) return;
-
-                                                setState(() {
-                                                  _image = File(file.path);
-                                                });
-                                              },
-                                              icon: const Icon(Icons.add_photo_alternate)),
-                                      ),
-                                    ),
-                                  ],
+                            Container(
+                              height:200,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(30),
+                                color: Colors.white,
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 20,
+                                    offset: Offset(5, 5),
+                                  ),
+                                ],
+                              ),
+                              child: _image != null
+                                  ? ClipRRect(
+                                borderRadius: BorderRadius.circular(30),
+                                child: Image.file(_image!,
+                                  fit: BoxFit.cover,
                                 ),
+                              )
+                                  : const Center(
+                                child: Icon(
+                                  Icons.person,
+                                  color: Colors.grey,
+                                  size: 80.0,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 30,),
+                            Container(
+                              decoration: ThemeHelper().buttonBoxDecoration(context),
+                              child: ElevatedButton(
+                                style: ThemeHelper().buttonStyle(),
+                                child: const Padding(
+                                  padding: EdgeInsets.fromLTRB(40, 10, 40, 10),
+                                  child: Icon(Icons.add_photo_alternate, color: Colors.white,),
+                                ),
+                                onPressed: () async {
+                                  ImagePicker imagePicker = ImagePicker();
+                                  XFile? file = await imagePicker.pickImage(source: ImageSource.gallery);
+                                  if(file == null) return;
+                                  setState(() {
+                                    _image = File(file.path);
+                                  });
+                                },
+                              ),
                             ),
                             const SizedBox(height: 20),
                             SizedBox(
@@ -327,7 +325,7 @@ class _AddMenuState extends State<AddMenu> {
                                               backgroundColor: Colors.green.withOpacity(0.8),
                                               textColor: Colors.white
                                           );
-                                          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => RestaurantHome(user: widget.user)));
+                                          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Home()));
                                         }catch(e){
                                           Fluttertoast.showToast(
                                               msg: e.toString(),

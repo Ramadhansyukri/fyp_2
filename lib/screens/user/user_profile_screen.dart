@@ -97,7 +97,7 @@ class _UserProfileState extends State<UserProfile> {
                 leading: Icon(Icons.person_remove_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Delete Account',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
-                  await _auth.deleteAccount(widget.user!.uid, widget.user!.usertype);
+                  await _auth.deleteAccount(widget.user!.usertype);
                   Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                 },
               ),
