@@ -23,7 +23,7 @@ class RestaurantHome extends StatefulWidget {
 class _RiderHomeState extends State<RestaurantHome> {
   final double  _drawerIconSize = 24;
   final double _drawerFontSize = 17;
-  
+
   final String uid = FirebaseAuth.instance.currentUser!.uid;
 
   final AuthService _auth = AuthService();
@@ -118,7 +118,8 @@ class _RiderHomeState extends State<RestaurantHome> {
       ),
       body: Builder(
         builder: (context) => SizedBox(
-          height: 1000,
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
           child: Column(
             children: [
               Stack(
@@ -210,6 +211,7 @@ class _RiderHomeState extends State<RestaurantHome> {
               ),
               const SizedBox(height: 20,),
               Expanded(
+                flex: 1,
                 child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance.collection('restaurant').doc(uid).collection("menu").snapshots(),
                 builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -220,7 +222,7 @@ class _RiderHomeState extends State<RestaurantHome> {
                     return const CircularProgressIndicator();
                   }
                   if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                    return const Text('No data available');
+                    return const Text('Add your Menu');
                   }
                   return ListView.builder(
                     itemCount: snapshot.data!.docs.length,
@@ -232,6 +234,7 @@ class _RiderHomeState extends State<RestaurantHome> {
                         onTap: (){},
                         child: Container(
                           height: 120,
+                          width: MediaQuery.of(context).size.width,
                           margin: const EdgeInsets.only(top: 15),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(30),
@@ -247,53 +250,59 @@ class _RiderHomeState extends State<RestaurantHome> {
                                   width: 100,
                                   child: Image.network(
                                     '${document['imageUrl']}',
-                                    fit: BoxFit.cover,
+                                    fit: BoxFit.contain,
                                   ),
                                 ),
                                 const SizedBox(width: 16), // Adjust the spacing as needed
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 1,
-                                      child: Align(
-                                        alignment: Alignment.topCenter,
-                                        child: Text(
-                                          '${document['name']}',
-                                          style: const TextStyle(
-                                            fontSize: 25,
-                                            fontWeight: FontWeight.bold,
+                                SizedBox(
+                                  height: 120,
+                                  width: 170,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        flex: 1,
+                                        child: Align(
+                                          alignment: Alignment.topLeft,
+                                          child: Text(
+                                            '${document['name']}',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      flex: 1,
-                                      child: Align(
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          '${document['desc']}',
-                                          maxLines: 3,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                              color: Colors.grey
+                                      Expanded(
+                                        flex: 1,
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            '${document['desc']}',
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                                color: Colors.grey
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    Expanded(
-                                      flex: 1,
-                                      child: Align(
-                                        alignment: Alignment.bottomCenter,
-                                        child: Text(
-                                          showPrice,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
+                                      Expanded(
+                                        flex: 1,
+                                        child: Align(
+                                          alignment: Alignment.bottomLeft,
+                                          child: Text(
+                                            showPrice,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),

@@ -91,17 +91,27 @@ class MenuDatabaseService{
     }
     return null;
   }
+
+  Future deleteMenu() async {
+
+    try{
+      await menuDb.doc(uid).delete();
+    }catch(e){
+      print(e);
+    }
+
+  }
 }
 
 class RestDatabaseService{
   final String? uid;
   RestDatabaseService({ required this.uid});
 
-  final userdata = FirebaseFirestore.instance.collection('restaurant');
+  final restData = FirebaseFirestore.instance.collection('restaurant');
 
   Future setRest(String imageUrl, String addressLine1, String addressLine2, String addressLine3) async {
 
-    final userData = Restaurant(
+    final restdata = Restaurant(
         uid: uid,
         imageUrl: imageUrl,
         addressLine1: addressLine1,
@@ -109,15 +119,15 @@ class RestDatabaseService{
         addressLine3: addressLine3
     );
 
-    await userdata.doc(uid).set(
-        userData.toJson(),
+    await restData.doc(uid).set(
+        restdata.toJson(),
         SetOptions(merge: true)
     );
   }
 
   Future<Restaurant?> getRest() async {
-    final userDoc = userdata.doc(uid);
-    final snapshot = await userDoc.get();
+    final restDoc = restData.doc(uid);
+    final snapshot = await restDoc.get();
 
     if(snapshot.exists) {
       return Restaurant.fromJson(snapshot.data()!);

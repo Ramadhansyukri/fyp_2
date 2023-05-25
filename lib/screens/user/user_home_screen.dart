@@ -8,6 +8,7 @@ import 'package:fyp_2/services/auth.dart';
 import '../../models/user_models.dart';
 import '../../shared/theme_helper.dart';
 import '../../widgets/header_widget.dart';
+import 'cart_screen.dart';
 
 class UserHome extends StatefulWidget {
   //const RiderHome({Key? key}) : super(key: key);
@@ -46,7 +47,12 @@ class _UserHomeState extends State<UserHome> {
           ),
         ),
         actions: <Widget>[
-          IconButton(onPressed: (){}, icon: const Icon(Icons.shopping_cart))
+          IconButton(
+              onPressed: (){
+                Navigator.push( context, MaterialPageRoute(builder: (context) => const Cart()),);
+              },
+              icon: const Icon(Icons.shopping_cart)
+          )
         ],
       ),
       drawer: Drawer(
@@ -112,7 +118,7 @@ class _UserHomeState extends State<UserHome> {
       ),
       body: Builder(
         builder: (context) => SizedBox(
-          height: 1000,
+          height: MediaQuery.of(context).size.height,
           child: Column(
             children: [
               Stack(

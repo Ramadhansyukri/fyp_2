@@ -79,7 +79,7 @@ class _HomeState extends State<Home> {
                         ),
                       ),
                       onPressed: () async {
-                        _auth.deleteAccount(snapshot.data!.usertype);
+                        await _auth.deleteAccount(snapshot.data!.usertype);
                         Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                       },
                     ),

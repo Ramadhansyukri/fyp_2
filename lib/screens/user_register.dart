@@ -147,7 +147,7 @@ class _UserRegState extends State<UserReg> {
                               decoration: ThemeHelper().textInputDecoration(
                                   "Password", "Enter your password"),
                               validator: (val) {
-                                if (!(val!.isEmpty) && (val.length <8)) {
+                                if ((val!.isNotEmpty) && (val.length <8)) {
                                   return "Password must be at least 8 character";
                                 }
                                 return null;
@@ -300,11 +300,6 @@ class _UserRegState extends State<UserReg> {
                               ),
                             ),
                             onPressed: () async {
-                              showDialog(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (context) => const Center(child: CircularProgressIndicator())
-                              );
                               if (_formKey.currentState!.validate()){
 
                                 if(_usertype == "Restaurant"){

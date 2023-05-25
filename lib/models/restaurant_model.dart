@@ -17,7 +17,7 @@ class Restaurant {
   Map<String, dynamic> toJson() => {
     'imageUrl': imageUrl,
     'addressLine1': addressLine1,
-    'email': addressLine2,
+    'addressLine2': addressLine2,
     'addressLine3': addressLine3,
   };
 
@@ -26,6 +26,6 @@ class Restaurant {
       imageUrl: data['imageUrl'],
       addressLine1: data['addressLine1'],
       addressLine2: data['addressLine2'],
-      addressLine3: data['addressLine3']
+      addressLine3: data['addressLine3'],
   );
 }
