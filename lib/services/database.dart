@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fyp_2/models/cart_models.dart';
 
 import '../models/menu_models.dart';
 import '../models/restaurant_model.dart';
@@ -133,5 +134,68 @@ class RestDatabaseService{
       return Restaurant.fromJson(snapshot.data()!);
     }
     return null;
+  }
+}
+
+class CartService{
+  final String? uid;
+  CartService({required this.uid});
+
+  final userdata = FirebaseFirestore.instance.collection('customer');
+
+  Future addToCart(String menuID, String menuName, double price, String imageUrl) async{
+
+    final cartData = CartItem(
+        id: menuID,
+        name: menuName,
+        price: price,
+        imageUrl: imageUrl,
+        quantity: 1
+    );
+
+    await userdata.doc(uid).collection('cart').doc(menuID).set(cartData.toJson());
+  }
+
+  Future<List<CartItem>> getCartItems() async {
+    final cartItemsSnapshot = await userdata
+        .doc(uid)
+        .collection('cart')
+        .get();
+
+    return cartItemsSnapshot.docs
+        .map((doc) => CartItem.fromJson(doc.data()))
+        .toList();
+  }
+
+  Future<void> updateCartItem(CartItem cartItem) {
+    if (cartItem.quantity == 0) {
+      return removeCartItem(cartItem);
+    } else {
+      return userdata
+          .doc(uid)
+          .collection('cart')
+          .doc(cartItem.id)
+          .set(cartItem.toJson());
+    }
+  }
+
+
+
+  Future<void> removeCartItem(CartItem cartItem) {
+    return userdata
+        .doc(uid)
+        .collection('cart')
+        .doc(cartItem.id)
+        .delete();
+  }
+
+  Future<void> clearCart() {
+    return userdata.doc(uid).collection('cart').get().then((snapshot) {
+      final batch = FirebaseFirestore.instance.batch();
+      for (DocumentSnapshot doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      return batch.commit();
+    });
   }
 }

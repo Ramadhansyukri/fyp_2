@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fyp_2/models/restaurant_model.dart';
 import 'package:fyp_2/models/user_models.dart';
 import 'package:fyp_2/services/database.dart';
@@ -12,8 +13,9 @@ import 'cart_screen.dart';
 class ViewRestaurant extends StatefulWidget {
   //const ViewRestaurant({Key? key}) : super(key: key);
 
-  const ViewRestaurant({Key? key,required this.restID}) : super(key: key);
+  const ViewRestaurant({Key? key,required this.restID, required this.user}) : super(key: key);
 
+  final Users? user;
   final String restID;
 
   @override
@@ -67,47 +69,45 @@ class _ViewRestaurantState extends State<ViewRestaurant> {
           actions: <Widget>[
             IconButton(
                 onPressed: (){
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Cart()),);
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => CartScreen(user: widget.user,)),);
                 },
                 icon: const Icon(Icons.shopping_cart)
             )
           ],
         ),
         body: Builder(
-          builder: (context) => SizedBox(
-            height: MediaQuery.of(context).size.height,
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 150,
-                  child: Stack(
-                    children: [
-                      ClipRRect(
-                        child: Image.network(
-                          restaurant!.imageUrl,
-                          fit: BoxFit.fill,
-                          width: double.infinity,
-                          height: double.infinity,
-                        ),
+          builder: (context) => Column(
+            children: [
+              Container(
+                height: 150,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      child: Image.network(
+                        restaurant!.imageUrl,
+                        fit: BoxFit.fill,
+                        width: double.infinity,
+                        height: double.infinity,
                       ),
-                    ]
-                  ),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: db.collection('menu').snapshots(),
-                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      }
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      }
-                      if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                        return const Text('No data available');
-                      }
-                      else{
-                        return ListView.builder(
+              ),
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: db.collection('menu').snapshots(),
+                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    }
+                    if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
+                      return const Text('No data available');
+                    } else {
+                      return Expanded(
+                        child: ListView.builder(
                           itemCount: snapshot.data!.docs.length,
                           itemBuilder: (BuildContext context, int index) {
                             final document = snapshot.data!.docs[index];
@@ -116,7 +116,6 @@ class _ViewRestaurantState extends State<ViewRestaurant> {
                             return Container(
                               height: 120,
                               width: MediaQuery.of(context).size.width,
-                              //margin: const EdgeInsets.only(bottom: 15, top: 15),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 border: Border.all(
@@ -129,15 +128,15 @@ class _ViewRestaurantState extends State<ViewRestaurant> {
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     SizedBox(
-                                        height: 100,
-                                        width: 100,
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(30),
-                                          child: Image.network(
-                                            '${document['imageUrl']}',
-                                            fit: BoxFit.contain,
-                                          ),
-                                        )
+                                      height: 100,
+                                      width: 100,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(30),
+                                        child: Image.network(
+                                          '${document['imageUrl']}',
+                                          fit: BoxFit.contain,
+                                        ),
+                                      ),
                                     ),
                                     const SizedBox(width: 16),
                                     SizedBox(
@@ -170,7 +169,7 @@ class _ViewRestaurantState extends State<ViewRestaurant> {
                                                 maxLines: 2,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: const TextStyle(
-                                                    color: Colors.grey
+                                                  color: Colors.grey,
                                                 ),
                                               ),
                                             ),
@@ -190,7 +189,7 @@ class _ViewRestaurantState extends State<ViewRestaurant> {
                                         ],
                                       ),
                                     ),
-                                    Container(
+                                    SizedBox(
                                       height: 100,
                                       width: 60,
                                       child: Expanded(
@@ -214,25 +213,48 @@ class _ViewRestaurantState extends State<ViewRestaurant> {
                                                 ),
                                               ),
                                               onPressed: () async {
-
+                                                try {
+                                                  await CartService(uid: widget.user!.uid)
+                                                      .addToCart(
+                                                    '${document['menuID']}',
+                                                    '${document['name']}',
+                                                    document['price'],
+                                                    '${document['imageUrl']}',
+                                                  );
+                                                  Fluttertoast.showToast(
+                                                    msg: 'Successfully Add to Cart',
+                                                    toastLength: Toast.LENGTH_SHORT,
+                                                    gravity: ToastGravity.BOTTOM,
+                                                    fontSize: 20.0,
+                                                    backgroundColor: Colors.green.withOpacity(0.8),
+                                                    textColor: Colors.white,
+                                                  );
+                                                } catch (e) {
+                                                  Fluttertoast.showToast(
+                                                    msg: e.toString(),
+                                                    fontSize: 20.0,
+                                                    backgroundColor: Colors.redAccent.withOpacity(0.8),
+                                                    textColor: Colors.white,
+                                                  );
+                                                }
                                               },
                                             ),
                                           ],
-                                        )
-                                      )
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
                             );
                           },
-                        );
-                      }
-                    },
-                  ),
+                        ),
+                      );
+                    }
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       );

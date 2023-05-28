@@ -15,6 +15,7 @@ class Restaurant {
   });
 
   Map<String, dynamic> toJson() => {
+    'uid' : uid,
     'imageUrl': imageUrl,
     'addressLine1': addressLine1,
     'addressLine2': addressLine2,

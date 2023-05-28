@@ -49,7 +49,7 @@ class _UserHomeState extends State<UserHome> {
         actions: <Widget>[
           IconButton(
               onPressed: (){
-                Navigator.push( context, MaterialPageRoute(builder: (context) => const Cart()),);
+                Navigator.push( context, MaterialPageRoute(builder: (context) => CartScreen(user: widget.user)),);
               },
               icon: const Icon(Icons.shopping_cart)
           )
@@ -230,7 +230,7 @@ class _UserHomeState extends State<UserHome> {
                           final restaurantID = document.id;
                           return GestureDetector(
                             onTap: (){
-                              Navigator.push( context, MaterialPageRoute(builder: (context) => ViewRestaurant(restID: restaurantID)),);
+                              Navigator.push( context, MaterialPageRoute(builder: (context) => ViewRestaurant(restID: restaurantID, user: widget.user,)),);
                             },
                             child: Container(
                               height: 200,
