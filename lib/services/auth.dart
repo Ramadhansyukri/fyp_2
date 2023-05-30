@@ -11,7 +11,7 @@ class AuthService{
 
   Future registerWithEmailAndPassword(
       String email, String password, String username, String phoneNo, String usertype, BuildContext context,
-      String imageUrl, String addressLine1, String addressLine2, String addressLine3
+      String imageUrl, String address
       ) async {
 
     try{
@@ -20,7 +20,7 @@ class AuthService{
       UserDatabaseService(uid: value.user!.uid).setUser(username, email, phoneNo, usertype);
 
       if(usertype == "Restaurant"){
-        await RestDatabaseService(uid: value.user!.uid).setRest(imageUrl, addressLine1, addressLine2, addressLine3);
+        await RestDatabaseService(uid: value.user!.uid).setRest(imageUrl, address);
       }
 
       Fluttertoast.showToast(

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:fyp_2/models/cart_models.dart';
 
 import '../models/menu_models.dart';
@@ -14,12 +15,15 @@ class UserDatabaseService{
 
   Future setUser(String username, String email, String phoneNo, String usertype) async {
 
+    String address = "";
+
     final userData = Users(
       uid: uid,
       email: email,
       name: username,
       phone: phoneNo,
-      usertype: usertype
+      usertype: usertype,
+      address: address
     );
 
     if(usertype == 'Customer'){
@@ -55,7 +59,27 @@ class UserDatabaseService{
       }catch(e){
         print(e);
     }
+  }
 
+  Future<void> updateAddress(String address, String usertype) async {
+    await userdata.doc(uid).update({'address': address});
+    if(usertype == "Restaurant"){
+      await FirebaseFirestore.instance.collection('restaurant').doc(uid).update({'address': address});
+    }else if(usertype == "Rider"){
+      await FirebaseFirestore.instance.collection('rider').doc(uid).update({'address': address});
+    }else {
+      await FirebaseFirestore.instance.collection('customer').doc(uid).update({'address': address});
+    }
+  }
+
+  Future<String> getUserAddress() async {
+    final userDoc = await userdata.doc(uid).get();
+    if (userDoc.exists) {
+      final restaurantData = userDoc.data() as Map<String, dynamic>;
+      final addressLine = restaurantData['address'];
+      return '$addressLine';
+    }
+    return ''; // Return an empty string or handle the case when the restaurant is not found
   }
 }
 
@@ -110,14 +134,12 @@ class RestDatabaseService{
 
   final restData = FirebaseFirestore.instance.collection('restaurant');
 
-  Future setRest(String imageUrl, String addressLine1, String addressLine2, String addressLine3) async {
+  Future setRest(String imageUrl, String address) async {
 
     final restdata = Restaurant(
         uid: uid,
         imageUrl: imageUrl,
-        addressLine1: addressLine1,
-        addressLine2: addressLine2,
-        addressLine3: addressLine3
+        address: address,
     );
 
     await restData.doc(uid).set(
@@ -135,6 +157,16 @@ class RestDatabaseService{
     }
     return null;
   }
+
+  Future<String> getRestaurantAddress(String restaurantId) async {
+    final restaurantDoc = await restData.doc(restaurantId).get();
+    if (restaurantDoc.exists) {
+      final restaurantData = restaurantDoc.data() as Map<String, dynamic>;
+      final addressLine1 = restaurantData['address'];
+      return '$addressLine1';
+    }
+    return ''; // Return an empty string or handle the case when the restaurant is not found
+  }
 }
 
 class CartService{
@@ -143,14 +175,63 @@ class CartService{
 
   final userdata = FirebaseFirestore.instance.collection('customer');
 
-  Future addToCart(String menuID, String menuName, double price, String imageUrl) async{
+  Future addToCart(String menuID, String menuName, double price, String imageUrl, String? restID, BuildContext context) async{
+    final existingCart = await userdata.doc(uid).collection('cart').get();
+
+    // Check if any cart item already exists in the cart
+    if (existingCart.docs.isNotEmpty) {
+      final firstCartItem = existingCart.docs.first.data();
+      final firstMenuID = firstCartItem['id'] as String;
+
+      // Extract the restaurantID from the first menuID
+      final existingRestaurantID = firstMenuID.substring(0, 5);
+
+      // Extract the restaurantID from the new menuID
+      final newRestaurantID = menuID.substring(0, 5);
+
+      // Compare the restaurantIDs
+      if (existingRestaurantID != newRestaurantID) {
+        // Show alert dialog and handle the user's choice
+        final result = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Different Restaurant'),
+            content: const Text(
+              'You already have items from a different restaurant in your cart. '
+                  'Adding items from a different restaurant will clear your current cart. '
+                  'Do you want to continue?',
+            ),
+            actions: [
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              TextButton(
+                child: const Text('Continue'),
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          ),
+        );
+
+        // Handle the user's choice
+        if (result != null && result) {
+          // Clear the existing cart
+          await clearCart();
+        } else {
+          // User chose to cancel, so return without adding the new item
+          return;
+        }
+      }
+    }
 
     final cartData = CartItem(
-        id: menuID,
-        name: menuName,
-        price: price,
-        imageUrl: imageUrl,
-        quantity: 1
+      id: menuID,
+      name: menuName,
+      price: price,
+      imageUrl: imageUrl,
+      restID: restID as String,
+      quantity: 1,
     );
 
     await userdata.doc(uid).collection('cart').doc(menuID).set(cartData.toJson());
@@ -178,8 +259,6 @@ class CartService{
           .set(cartItem.toJson());
     }
   }
-
-
 
   Future<void> removeCartItem(CartItem cartItem) {
     return userdata

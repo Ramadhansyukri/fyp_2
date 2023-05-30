@@ -3,6 +3,7 @@ class CartItem {
   final String name;
   final double price;
   final String imageUrl;
+  final String restID;
   int quantity;
 
   CartItem({
@@ -10,6 +11,7 @@ class CartItem {
     required this.name,
     required this.price,
     required this.imageUrl,
+    required this.restID,
     required this.quantity,
   });
 
@@ -19,6 +21,7 @@ class CartItem {
       'name': name,
       'price': price,
       'imageUrl': imageUrl,
+      'restID' : restID,
       'quantity': quantity,
     };
   }
@@ -29,6 +32,7 @@ class CartItem {
       name: json['name'],
       price: json['price'],
         imageUrl: json['imageUrl'],
+      restID: json['restID'],
       quantity: json['quantity']
     );
   }

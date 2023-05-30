@@ -98,7 +98,7 @@ class _RestaurantProfileState extends State<RestaurantProfile> {
                 title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.SignOut();
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
+                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -107,7 +107,7 @@ class _RestaurantProfileState extends State<RestaurantProfile> {
                 title: Text('Delete Account',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.deleteAccount(widget.user!.usertype);
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
+                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                 },
               ),
             ],

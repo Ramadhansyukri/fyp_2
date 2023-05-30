@@ -37,9 +37,11 @@ class _UserRegState extends State<UserReg> {
   File? _image;
   var imageUrl = "";
 
+  var fullAddress = '';
   var addressLine1 = '';
-  var addressLine2 = '';
-  var addressLine3 = '';
+  var addressLine2 = 'Universiti Teknologi Malaysia';
+  var addressLine3 = '81310, Johor Bahru, Johor';
+
 
   @override
   Widget build(BuildContext context) {
@@ -238,7 +240,9 @@ class _UserRegState extends State<UserReg> {
                           Container(
                             decoration: ThemeHelper().inputBoxDecorationShadow(),
                             child: TextFormField(
-                                decoration: ThemeHelper().textInputDecoration('Address Line 1', 'Address Line 1'),
+                                decoration: ThemeHelper().textInputDecoration(
+                                  'Block, College/Faculty',
+                                  'Block, College/Faculty',),
                                 validator: (val){
                                   if(val!.isEmpty){
                                     return "Field can't be empty";
@@ -252,34 +256,52 @@ class _UserRegState extends State<UserReg> {
                           ),
                           const SizedBox(height: 20.0),
                           Container(
-                            decoration: ThemeHelper().inputBoxDecorationShadow(),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300], // Set the background color to greyish
+                              borderRadius: BorderRadius.circular(100.0), // Add border radius for rounded corners
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.5), // Add a shadow for depth
+                                  spreadRadius: 2,
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2), // Offset the shadow
+                                ),
+                              ],
+                            ),
                             child: TextFormField(
-                                decoration: ThemeHelper().textInputDecoration("Address Line 2", "Address Line 2"),
-                                validator: (val){
-                                  if(val!.isEmpty){
-                                    return "Field can't be empty";
-                                  }
-                                  return null;
-                                },
-                                onChanged: (val) {
-                                  setState(() => addressLine2 = val);
-                                }
+                              decoration: const InputDecoration(
+                                labelText: "Address Line 2",
+                                hintText: "Address Line 2",
+                                border: InputBorder.none, // Remove the default border
+                                contentPadding: EdgeInsets.all(16.0), // Add padding for text content
+                              ),
+                              enabled: false,
+                              initialValue: addressLine2,
                             ),
                           ),
                           const SizedBox(height: 20.0),
                           Container(
-                            decoration: ThemeHelper().inputBoxDecorationShadow(),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300], // Set the background color to greyish
+                              borderRadius: BorderRadius.circular(100.0), // Add border radius for rounded corners
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.5), // Add a shadow for depth
+                                  spreadRadius: 2,
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2), // Offset the shadow
+                                ),
+                              ],
+                            ),
                             child: TextFormField(
-                                decoration: ThemeHelper().textInputDecoration("Address Line 3", "Address Line 3"),
-                                validator: (val){
-                                  if(val!.isEmpty){
-                                    return "Field can't be empty";
-                                  }
-                                  return null;
-                                },
-                                onChanged: (val) {
-                                  setState(() => addressLine3 = val);
-                                }
+                              decoration: const InputDecoration(
+                                labelText: "Address Line 3",
+                                hintText: "Address Line 3",
+                                border: InputBorder.none, // Remove the default border
+                                contentPadding: EdgeInsets.all(16.0), // Add padding for text content
+                              ),
+                              enabled: false,
+                              initialValue: addressLine3,
                             ),
                           ),
                         ],
@@ -311,10 +333,10 @@ class _UserRegState extends State<UserReg> {
                                   await referenceImageToUpload.putFile(_image!);
                                   imageUrl = await referenceImageToUpload.getDownloadURL();
                                 }
-
+                                fullAddress = '$addressLine1,$addressLine2,$addressLine3';
                                 await _auth.registerWithEmailAndPassword(
                                   email, password, username, phoneNo, _usertype!, context,
-                                    imageUrl, addressLine1, addressLine2, addressLine3
+                                    imageUrl, fullAddress
                                 );
                               }
                             },

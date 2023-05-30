@@ -220,6 +220,8 @@ class _ViewRestaurantState extends State<ViewRestaurant> {
                                                     '${document['name']}',
                                                     document['price'],
                                                     '${document['imageUrl']}',
+                                                    restaurant!.uid,
+                                                    context
                                                   );
                                                   Fluttertoast.showToast(
                                                     msg: 'Successfully Add to Cart',

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/home_screen.dart';
+import 'package:fyp_2/screens/user/update_address.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 
 import '../../models/user_models.dart';
 import '../../services/auth.dart';
+import '../../services/database.dart';
 import '../../widgets/header_widget.dart';
 
 class UserProfile extends StatefulWidget {
@@ -23,6 +25,28 @@ class _UserProfileState extends State<UserProfile> {
   final double _drawerFontSize = 17;
 
   final AuthService _auth = AuthService();
+  late String _userAddress = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserAddress();
+  }
+
+  Future<void> _fetchUserAddress() async {
+    // Implement your logic to fetch the user's address based on the user UID
+    // For example:
+    final userAddress = await UserDatabaseService(uid: widget.user!.uid.toString()).getUserAddress();
+    setState(() {
+      _userAddress = userAddress;
+    });
+  }
+
+  void updateAddress(String newAddress) {
+    setState(() {
+      _userAddress = newAddress;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +113,7 @@ class _UserProfileState extends State<UserProfile> {
                 title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.SignOut();
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
+                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -98,7 +122,7 @@ class _UserProfileState extends State<UserProfile> {
                 title: Text('Delete Account',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.deleteAccount(widget.user!.usertype);
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
+                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                 },
               ),
             ],
@@ -170,6 +194,17 @@ class _UserProfileState extends State<UserProfile> {
                                           title: const Text("Phone"),
                                           subtitle: Text("${widget.user?.phone}"),
                                         ),
+                                        ListTile(
+                                          leading: const Icon(Icons.location_on),
+                                          title: const Text("Address"),
+                                          subtitle: Text(_userAddress.isNotEmpty ? _userAddress : "Set Address"),
+                                          trailing: IconButton(
+                                            icon: const Icon(Icons.edit),
+                                            onPressed: () {
+                                              Navigator.push( context, MaterialPageRoute(builder: (context) => AddressScreen(user: widget.user,updateAddress: updateAddress,)),);
+                                            },
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -177,8 +212,9 @@ class _UserProfileState extends State<UserProfile> {
                               ],
                             ),
                           ),
-                        )
-                      ],
+                        ),
+
+        ],
                     ),
                   )
                 ],
