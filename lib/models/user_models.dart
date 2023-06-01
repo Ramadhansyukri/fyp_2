@@ -6,6 +6,7 @@ class Users {
   final String phone;
   final String usertype;
   final String address;
+  final double balance;
 
   Users({
     required this.uid,
@@ -13,7 +14,8 @@ class Users {
     required this.email,
     required this.phone,
     required this.usertype,
-    required this.address
+    required this.address,
+    required this.balance
   });
 
   Map<String, dynamic> toJson() => {
@@ -22,7 +24,8 @@ class Users {
     'phone': phone,
     'email': email,
     'usertype': usertype,
-    'address': address
+    'address': address,
+    'balance': balance
   };
 
   static Users fromJson(Map<String, dynamic> data) => Users(
@@ -31,6 +34,7 @@ class Users {
     phone: data['phone'],
     email: data['email'],
     usertype: data['usertype'],
-    address: data['address']
+    address: data['address'],
+    balance: data['balance'].toDouble(),
   );
 }

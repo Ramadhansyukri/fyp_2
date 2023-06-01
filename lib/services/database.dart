@@ -16,6 +16,7 @@ class UserDatabaseService{
   Future setUser(String username, String email, String phoneNo, String usertype) async {
 
     String address = "";
+    double balance = 0.0;
 
     final userData = Users(
       uid: uid,
@@ -23,7 +24,8 @@ class UserDatabaseService{
       name: username,
       phone: phoneNo,
       usertype: usertype,
-      address: address
+      address: address,
+      balance: balance
     );
 
     if(usertype == 'Customer'){
@@ -80,6 +82,11 @@ class UserDatabaseService{
       return '$addressLine';
     }
     return ''; // Return an empty string or handle the case when the restaurant is not found
+  }
+
+  Future updateUserBalance(double amount) async {
+    final userRef = userdata.doc(uid);
+    await userRef.update({'balance': FieldValue.increment(amount)});
   }
 }
 

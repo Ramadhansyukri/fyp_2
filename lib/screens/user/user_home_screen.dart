@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp_2/screens/user/topup.dart';
 import 'package:fyp_2/screens/user/user_profile_screen.dart';
 import 'package:fyp_2/screens/user/view_restaurant_screen.dart';
 import 'package:fyp_2/screens/wrapper.dart';
@@ -27,9 +28,29 @@ class _UserHomeState extends State<UserHome> {
   final double _drawerFontSize = 17;
 
   final AuthService _auth = AuthService();
+  final db = FirebaseFirestore.instance;
+  double _balance = 0;
+
+  @override
+  void initState() {
+    getBalance();
+    super.initState();
+  }
+
+  void getBalance(){
+    final userStream = db.collection("users").doc(widget.user!.uid).snapshots();
+
+    userStream.listen((event) {
+      setState(() {
+        _balance = event.data()!['balance'].toDouble();
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Home",
@@ -137,8 +158,8 @@ class _UserHomeState extends State<UserHome> {
                         children: [
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
+                            children: [
+                              const Text(
                                 "Balance",
                                 maxLines: 1,
                                 style: TextStyle(
@@ -148,12 +169,12 @@ class _UserHomeState extends State<UserHome> {
                                     fontWeight: FontWeight.w400
                                 ),
                               ),
-                              SizedBox(height: 10,),
+                              const SizedBox(height: 10,),
                               Text(
-                                "100.00",
+                                _balance.toStringAsFixed(2),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontFamily: 'Roboto',
                                     color: Colors.black,
                                     fontSize: 40,
@@ -179,6 +200,7 @@ class _UserHomeState extends State<UserHome> {
                                 ),
                               ),
                               onPressed: () {
+                                Navigator.push( context, MaterialPageRoute(builder: (context) => TopUpScreen(user: widget.user,)), );
 
                               },
                             ),
@@ -211,7 +233,7 @@ class _UserHomeState extends State<UserHome> {
               const SizedBox(height: 20,),
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance.collection('restaurant').snapshots(),
+                  stream: db.collection('restaurant').snapshots(),
                   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                     if (snapshot.hasError) {
                       return Text('Error: ${snapshot.error}');
