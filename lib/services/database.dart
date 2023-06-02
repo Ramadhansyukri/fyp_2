@@ -77,16 +77,31 @@ class UserDatabaseService{
   Future<String> getUserAddress() async {
     final userDoc = await userdata.doc(uid).get();
     if (userDoc.exists) {
-      final restaurantData = userDoc.data() as Map<String, dynamic>;
-      final addressLine = restaurantData['address'];
+      final userData = userDoc.data() as Map<String, dynamic>;
+      final addressLine = userData['address'];
       return '$addressLine';
     }
     return ''; // Return an empty string or handle the case when the restaurant is not found
   }
 
-  Future updateUserBalance(double amount) async {
+  Future addUserBalance(double amount) async {
     final userRef = userdata.doc(uid);
     await userRef.update({'balance': FieldValue.increment(amount)});
+  }
+
+  Future deductUserBalance(double amount) async {
+    final userRef = userdata.doc(uid);
+    await userRef.update({'balance': amount});
+  }
+
+  Future<double> getUserBalance() async {
+    final userDoc = await userdata.doc(uid).get();
+    if (userDoc.exists) {
+      final userData = userDoc.data() as Map<String, dynamic>;
+      final balance = userData['balance'];
+      return balance;
+    }
+    return 0.0; // Return an empty string or handle the case when the restaurant is not found
   }
 }
 
@@ -285,3 +300,44 @@ class CartService{
     });
   }
 }
+
+class OrderDatabaseService {
+  final CollectionReference orderCollection = FirebaseFirestore.instance.collection('Order');
+
+  Future<void> createOrder(String userid, String restId, double deliveryFee, double total, String address) async {
+    List<CartItem> cartItems = await CartService(uid: userid).getCartItems();
+
+    try {
+      String orderId = DateTime.now().toIso8601String().substring(0, 16).replaceAll('-', '').replaceAll(':', '');
+
+      Map<String, dynamic> orderData = {
+        'userId': userid,
+        'restaurantId': restId,
+        'deliveryFee': deliveryFee,
+        'totalAmount': total,
+        'address': address,
+        'dateTime': DateTime.now(),
+      };
+
+      await orderCollection.doc(orderId).set(orderData);
+
+      List<Map<String, dynamic>> itemsData = cartItems.map((cartItem) => cartItem.toJson()).toList();
+
+      CollectionReference itemsCollection = orderCollection.doc(orderId).collection('items');
+
+      for (int i = 0; i < itemsData.length; i++) {
+        await itemsCollection.doc('item$i').set(itemsData[i]);
+      }
+
+      await CartService(uid: userid).clearCart();
+    } catch (e) {
+      print('Error creating order in Firestore: $e');
+      // Handle the error
+    }
+  }
+}
+
+
+
+
+

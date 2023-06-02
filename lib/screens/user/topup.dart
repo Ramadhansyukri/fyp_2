@@ -164,7 +164,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
       );
 
 
-      await UserDatabaseService(uid: widget.user!.uid.toString()).updateUserBalance(double.parse(amountController.text))
+      await UserDatabaseService(uid: widget.user!.uid.toString()).addUserBalance(double.parse(amountController.text))
           .then((value) => {
         Fluttertoast.showToast(msg: "Payment successfully completed"),
       });

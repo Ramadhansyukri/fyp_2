@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fyp_2/screens/home_screen.dart';
 import 'package:fyp_2/screens/user/set_address.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -48,10 +49,11 @@ class _CartScreenState extends State<CartScreen> {
 
   void _calculateDeliveryFee() async {
     try {
-      if(_cartItems.isEmpty){
+      if (_cartItems.isEmpty) {
         _deliveryFee = 0;
         return;
       }
+
       final String restID = _cartItems[0].restID;
       String restaurantAddress = await RestDatabaseService(uid: restID).getRestaurantAddress(restID);
 
@@ -69,7 +71,10 @@ class _CartScreenState extends State<CartScreen> {
       );
 
       const double feePerKilometer = 2.0;
-      _deliveryFee = (distanceInMeters / 1000) * feePerKilometer;
+      double deliveryFee = (distanceInMeters / 1000) * feePerKilometer;
+
+      // Round up the delivery fee to 2 decimal places
+      _deliveryFee = double.parse((deliveryFee).ceilToDouble().toStringAsFixed(2));
     } catch (e) {
       print('Error calculating delivery fee: $e');
     }
@@ -266,7 +271,7 @@ class _CartScreenState extends State<CartScreen> {
                       alignment: Alignment.bottomRight,
                       child: ElevatedButton(
                         onPressed: () {
-                          // Implement checkout logic
+                          _checkout();
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white, backgroundColor: Colors.green,
@@ -282,6 +287,43 @@ class _CartScreenState extends State<CartScreen> {
         ],
       ),
     );
+  }
+
+  void _checkout() async {
+    // Compare total amount and user balance
+    double totalAmount = _calculateTotal() + _deliveryFee;
+    double userBalance = await UserDatabaseService(uid: widget.user!.uid.toString()).getUserBalance(); // Replace this with your logic to fetch user balance from Firebase
+
+    if (totalAmount > userBalance) {
+      // Display error message and stop the process
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Insufficient Balance'),
+            content: const Text('Your balance is not sufficient to complete the order.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    double newBalance = userBalance - totalAmount;
+    await UserDatabaseService(uid: widget.user!.uid.toString()).deductUserBalance(newBalance);
+
+    // Store necessary data into Firebase order collection
+    await OrderDatabaseService().createOrder(widget.user!.uid.toString(), _cartItems[0].restID, _deliveryFee, totalAmount, _userAddress); // Replace this with your logic to save order data to Firebase
+
+    // Refresh the screen or navigate to a different screen
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Home()));
   }
 }
 

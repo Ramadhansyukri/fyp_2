@@ -37,36 +37,3 @@ class CartItem {
     );
   }
 }
-/*
-class Cart{
-  final String menuID;
-  final String restaurantID;
-  late final int quantity;
-
-  Cart({
-    required this.menuID,
-    required this.restaurantID,
-    this.quantity = 1,
-  });
-
-  void incrementQuantity() {
-    quantity = quantity + 1;
-
-  }
-
-  void decrementQuantity() {
-    quantity = quantity - 1;
-  }
-
-  Map<String, dynamic> toJson() => {
-    'menuID': menuID,
-    'restaurantID': restaurantID,
-    'quantity': quantity,
-  };
-
-  static Cart fromJson(Map<String, dynamic> data) => Cart(
-    menuID: data['menuID'],
-    restaurantID: data['restaurantID'],
-    quantity: data['quantity'],
-  );
-}*/
