@@ -436,8 +436,3 @@ class RiderDatabaseService {
   }
 
 }
-
-
-
-
-

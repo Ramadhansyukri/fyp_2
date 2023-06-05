@@ -1,31 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:fyp_2/screens/home_screen.dart';
 import '../../models/order_model.dart';
-import '../../services/database.dart';
 
-class ViewOrderScreen extends StatefulWidget {
-  const ViewOrderScreen({Key? key, required this.order}) : super(key: key);
+class UserOrderNoRider extends StatefulWidget {
+  const UserOrderNoRider({Key? key, required this.order}) : super(key: key);
 
   final OrderModel? order;
 
   @override
-  State<ViewOrderScreen> createState() => _ViewOrderScreenState();
+  State<UserOrderNoRider> createState() => _UserOrderNoRiderState();
 }
 
-class _ViewOrderScreenState extends State<ViewOrderScreen> {
+class _UserOrderNoRiderState extends State<UserOrderNoRider> {
   late Future<DocumentSnapshot> _userFuture;
-  late Future<DocumentSnapshot> _restaurantFuture;
-  late Future<DocumentSnapshot> _riderFuture;
   late Future<DocumentSnapshot> _orderFuture;
 
   @override
   void initState() {
     super.initState();
     _userFuture = _fetchUser(widget.order!.userID);
-    _restaurantFuture = _fetchRestaurant(widget.order!.restID);
-    _riderFuture = _fetchRider(widget.order!.riderID.toString());
     _orderFuture = _fetchOrder(widget.order!.orderID);
   }
 
@@ -37,68 +30,12 @@ class _ViewOrderScreenState extends State<ViewOrderScreen> {
     return userDoc;
   }
 
-  Future<DocumentSnapshot> _fetchRestaurant(String restaurantID) async {
-    final restaurantDoc = await FirebaseFirestore.instance
-        .collection('restaurant')
-        .doc(restaurantID)
-        .get();
-    return restaurantDoc;
-  }
-
-  Future<DocumentSnapshot> _fetchRider(String riderID) async {
-    final riderDoc = await FirebaseFirestore.instance
-        .collection('rider')
-        .doc(riderID)
-        .get();
-    return riderDoc;
-  }
-
   Future<DocumentSnapshot> _fetchOrder(String orderID) async {
     final orderDoc = await FirebaseFirestore.instance
         .collection('Order')
         .doc(orderID)
         .get();
     return orderDoc;
-  }
-
-  void _updateOrderStatus() async {
-    final orderDocRef =
-    FirebaseFirestore.instance.collection('Order').doc(widget.order!.orderID);
-
-    // Update the order status to 'Delivered'
-    orderDocRef.update({'status': 'Delivered'}).then((_) async {
-      // Add balance to the user based on the subtotal
-      await UserDatabaseService(uid: widget.order!.riderID.toString())
-          .addUserBalance(widget.order!.deliveryFee);
-
-      // Delete the currentorder subcollection inside the rider collection
-      final riderID = widget.order!.riderID.toString();
-      final currentOrderCollectionRef = FirebaseFirestore.instance
-          .collection('rider')
-          .doc(riderID)
-          .collection('currentorder');
-
-      final currentOrderDocs = await currentOrderCollectionRef.get();
-
-      for (final doc in currentOrderDocs.docs) {
-        await doc.reference.delete();
-      }
-
-      setState(() {
-        // Refresh the UI to reflect the updated order status
-        _orderFuture = _fetchOrder(widget.order!.orderID);
-      });
-      Fluttertoast.showToast(
-        msg: 'Order Complete',
-        fontSize: 20.0,
-        backgroundColor: Colors.green.withOpacity(0.8),
-        textColor: Colors.white,
-      );
-      Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()),);
-    }).catchError((error) {
-      // Handle the error if the update fails
-      print('Error updating order status: $error');
-    });
   }
 
   @override
@@ -129,8 +66,6 @@ class _ViewOrderScreenState extends State<ViewOrderScreen> {
         child: FutureBuilder(
           future: Future.wait([
             _userFuture,
-            _restaurantFuture,
-            _riderFuture,
             _orderFuture,
           ]),
           builder: (context, AsyncSnapshot<List<DocumentSnapshot>> snapshot) {
@@ -143,9 +78,7 @@ class _ViewOrderScreenState extends State<ViewOrderScreen> {
             }
 
             final userDoc = snapshot.data![0];
-            final restaurantDoc = snapshot.data![1];
-            final riderDoc = snapshot.data![2];
-            final orderDoc = snapshot.data![3];
+            final orderDoc = snapshot.data![1];
 
             // Fetch the item documents from the "item" subcollection within "OrderTaken"
             final itemDocs = orderDoc.reference.collection('items').get();
@@ -199,33 +132,6 @@ class _ViewOrderScreenState extends State<ViewOrderScreen> {
                             ),
                           ),
                           subtitle: Text(userDoc['name']),
-                        ),
-                        ListTile(
-                          title: const Text(
-                            'Restaurant Name:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: Text(restaurantDoc['name']),
-                        ),
-                        ListTile(
-                          title: const Text(
-                            'Rider:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: Text(riderDoc['name']),
-                        ),
-                        ListTile(
-                          title: const Text(
-                            'Restaurant Address:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: Text(restaurantDoc['address']),
                         ),
                         ListTile(
                           title: const Text(
@@ -319,14 +225,6 @@ class _ViewOrderScreenState extends State<ViewOrderScreen> {
                             ],
                           ),
                         ),
-                      ),
-                      ElevatedButton(
-                        onPressed: orderDoc['status'] == 'Ready' ? _updateOrderStatus : null,
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: orderDoc['status'] == 'Ready' ? Colors.green : Colors.grey,
-                        ),
-                        child: const Text('Delivered'),
                       ),
                     ],
                   ),

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp_2/screens/restaurant/restaurant_order_history.dart';
 import 'package:fyp_2/screens/restaurant/restaurant_profile_screen.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 
@@ -83,7 +84,15 @@ class _ViewMenuScreenState extends State<ViewMenuScreen> {
                 leading: Icon(Icons.home, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Home',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()), );
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()),);
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.history_edu_outlined, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Orders',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => RestOrderHistory(user: widget.user)), );
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -91,7 +100,7 @@ class _ViewMenuScreenState extends State<ViewMenuScreen> {
                 leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => RestaurantProfile(user: widget.user)), );
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => RestaurantProfile(user: widget.user)),);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -99,10 +108,21 @@ class _ViewMenuScreenState extends State<ViewMenuScreen> {
                 leading: Icon(Icons.restaurant_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Add Menu',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => AddMenu(user: widget.user)), );
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => AddMenu(user: widget.user)),);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.edit_document, size: _drawerIconSize, color: Theme.of(context).colorScheme.secondary,),
+                title: Text('View Menu', style: TextStyle(fontSize: _drawerFontSize, color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ViewMenuScreen(user: widget.user),));
+                },
+              ),
+              Divider(
+                color: Theme.of(context).primaryColor,
+                height: 1,
+              ),
               ListTile(
                 leading: Icon(Icons.logout_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),

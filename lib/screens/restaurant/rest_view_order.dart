@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../models/order_model.dart';
+import '../../services/database.dart';
+import '../home_screen.dart';
 
 class RestViewOrder extends StatefulWidget {
   const RestViewOrder({Key? key, required this.order}) : super(key: key);
@@ -36,6 +39,34 @@ class _RestViewOrderState extends State<RestViewOrder> {
         .doc(orderID)
         .get();
     return orderDoc;
+  }
+
+  void _updateOrderStatus() {
+    final orderDocRef = FirebaseFirestore.instance.collection('Order').doc(widget.order!.orderID);
+
+    // Update the order status to 'Ready'
+    orderDocRef.update({'status': 'Ready'}).then((_) async {
+      // Calculate subtotal (total - delivery fee)
+      double subtotal = widget.order!.total - widget.order!.deliveryFee;
+
+      // Add balance to the user based on the subtotal
+      await UserDatabaseService(uid: widget.order!.restID).addUserBalance(subtotal);
+
+      setState(() {
+        // Refresh the UI to reflect the updated order status
+        _orderFuture = _fetchOrder(widget.order!.orderID);
+      });
+      Fluttertoast.showToast(
+        msg: 'Order Complete',
+        fontSize: 20.0,
+        backgroundColor: Colors.green.withOpacity(0.8),
+        textColor: Colors.white,
+      );
+      Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()),);
+    }).catchError((error) {
+      // Handle the error if the update fails
+      print('Error updating order status: $error');
+    });
   }
 
   @override
@@ -227,9 +258,7 @@ class _RestViewOrderState extends State<RestViewOrder> {
                         ),
                       ),
                       ElevatedButton(
-                        onPressed: orderDoc['status'] == 'Received' ? () {
-                          // Handle button press here
-                        } : null,
+                        onPressed: orderDoc['status'] == 'Received' ? _updateOrderStatus : null,
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white,
                           backgroundColor: orderDoc['status'] == 'Received' ? Colors.green : Colors.grey,

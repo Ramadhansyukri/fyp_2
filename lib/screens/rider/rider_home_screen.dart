@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:fyp_2/screens/rider/rider_order_history.dart';
 import 'package:fyp_2/screens/rider/rider_profile_screen.dart';
 import 'package:fyp_2/screens/rider/view_order.dart';
 import 'package:fyp_2/services/database.dart';
@@ -10,6 +11,7 @@ import '../../models/user_models.dart';
 import '../../services/auth.dart';
 import '../../shared/theme_helper.dart';
 import '../../widgets/header_widget.dart';
+import '../home_screen.dart';
 import '../wrapper.dart';
 
 class RiderHome extends StatefulWidget {
@@ -159,10 +161,26 @@ class _RiderHomeState extends State<RiderHome> {
                 ),
               ),
               ListTile(
+                leading: Icon(Icons.home, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Home',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()), );
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
                 leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Profile',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
                   Navigator.push( context, MaterialPageRoute(builder: (context) => RiderProfile(user: widget.user)), );
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.history_edu_outlined, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Orders',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => RiderOrderHistory(user: widget.user)), );
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -282,7 +300,7 @@ class _RiderHomeState extends State<RiderHome> {
               ),
               _currentOrder != null
                   ? GestureDetector(
-                    onTap: () => Navigator.push( context, MaterialPageRoute(builder: (context) => ViewOrderScreen(order: _currentOrder,)),),
+                    onTap: () => Navigator.push( context, MaterialPageRoute(builder: (context) => ViewOrderScreen(order: _currentOrder)),),
                     child: Container(
                       margin: const EdgeInsets.all(10),
                       padding: const EdgeInsets.all(20),

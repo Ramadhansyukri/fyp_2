@@ -9,11 +9,8 @@ import 'package:fyp_2/services/database.dart';
 
 import 'cart_screen.dart';
 
-
 class ViewRestaurant extends StatefulWidget {
-  //const ViewRestaurant({Key? key}) : super(key: key);
-
-  const ViewRestaurant({Key? key,required this.restID, required this.user}) : super(key: key);
+  const ViewRestaurant({Key? key, required this.restID, required this.user}) : super(key: key);
 
   final Users? user;
   final String restID;
@@ -23,7 +20,6 @@ class ViewRestaurant extends StatefulWidget {
 }
 
 class _ViewRestaurantState extends State<ViewRestaurant> {
-
   Restaurant? restaurant;
   Users? restaurantInfo;
 
@@ -34,230 +30,209 @@ class _ViewRestaurantState extends State<ViewRestaurant> {
   }
 
   Future<void> fetchRestaurant() async {
-      final restaurantData = await RestDatabaseService(uid: widget.restID).getRest();
-      final restaurantData2 = await UserDatabaseService(uid: widget.restID).getUser();
-      setState(() {
-        restaurant = restaurantData;
-        restaurantInfo = restaurantData2;
-      });
+    final restaurantData = await RestDatabaseService(uid: widget.restID).getRest();
+    final restaurantData2 = await UserDatabaseService(uid: widget.restID).getUser();
+    setState(() {
+      restaurant = restaurantData;
+      restaurantInfo = restaurantData2;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-
     final db = FirebaseFirestore.instance.collection('restaurant').doc(widget.restID);
 
     if (restaurant != null && restaurantInfo != null) {
       return Scaffold(
         appBar: AppBar(
-          title: Text(restaurantInfo!.name,
+          title: Text(
+            restaurantInfo!.name,
             maxLines: 1,
             overflow: TextOverflow.fade,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold,),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           elevation: 0.5,
           iconTheme: const IconThemeData(color: Colors.white),
-          flexibleSpace:Container(
+          flexibleSpace: Container(
             decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: <Color>[Theme.of(context).primaryColor, Theme.of(context).colorScheme.secondary,]
-                )
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: <Color>[Theme.of(context).primaryColor, Theme.of(context).colorScheme.secondary],
+              ),
             ),
           ),
           actions: <Widget>[
             IconButton(
-                onPressed: (){
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => CartScreen(user: widget.user,)),);
-                },
-                icon: const Icon(Icons.shopping_cart)
-            )
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CartScreen(user: widget.user)));
+              },
+              icon: const Icon(Icons.shopping_cart),
+            ),
           ],
         ),
         body: Builder(
-          builder: (context) => Column(
-            children: [
-              Container(
-                height: 150,
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      child: Image.network(
-                        restaurant!.imageUrl,
-                        fit: BoxFit.fill,
+          builder: (context) {
+            return Stack(
+              children: [
+                SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 200,
                         width: double.infinity,
-                        height: double.infinity,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: NetworkImage(restaurant!.imageUrl),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: db.collection('menu').snapshots(),
-                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    }
-                    if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                      return const Text('No data available');
-                    } else {
-                      return Expanded(
-                        child: ListView.builder(
-                          itemCount: snapshot.data!.docs.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final document = snapshot.data!.docs[index];
-                            double price = document['price'];
-                            String showPrice = price.toStringAsFixed(2);
-                            return Container(
-                              height: 120,
-                              width: MediaQuery.of(context).size.width,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(
-                                  color: Colors.black,
-                                ),
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Menu',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
                               ),
-                              child: Container(
-                                padding: const EdgeInsets.only(top: 15, left: 15, right: 15, bottom: 15),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                      height: 100,
-                                      width: 100,
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(30),
-                                        child: Image.network(
-                                          '${document['imageUrl']}',
-                                          fit: BoxFit.contain,
+                            ),
+                            const SizedBox(height: 16),
+                            StreamBuilder<QuerySnapshot>(
+                              stream: db.collection('menu').snapshots(),
+                              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                if (snapshot.hasError) {
+                                  return Text('Error: ${snapshot.error}');
+                                }
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const CircularProgressIndicator();
+                                }
+                                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                  return const Center(child: Text('No data available'));
+                                } else {
+                                  return ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: snapshot.data!.docs.length,
+                                    itemBuilder: (BuildContext context, int index) {
+                                      final document = snapshot.data!.docs[index];
+                                      double price = document['price'];
+                                      String showPrice = price.toStringAsFixed(2);
+                                      return Container(
+                                        margin: const EdgeInsets.only(bottom: 16),
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(10),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.1),
+                                              blurRadius: 5,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    SizedBox(
-                                      height: 120,
-                                      width: 170,
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            flex: 1,
-                                            child: Align(
-                                              alignment: Alignment.topLeft,
-                                              child: Text(
-                                                '${document['name']}',
-                                                maxLines: 2,
-                                                overflow: TextOverflow.visible,
-                                                style: const TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: Text(
-                                                '${document['desc']}',
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  color: Colors.grey,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Align(
-                                              alignment: Alignment.bottomLeft,
-                                              child: Text(
-                                                showPrice,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 100,
-                                      width: 60,
-                                      child: Expanded(
-                                        flex: 1,
-                                        child: Column(
+                                        child: Row(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            ElevatedButton(
-                                              style: ButtonStyle(
-                                                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                                  RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.circular(30.0),
+                                            Container(
+                                              width: 100,
+                                              height: 100,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(20),
+                                                image: DecorationImage(
+                                                  image: NetworkImage(document['imageUrl']),
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    document['name'],
+                                                    style: const TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                    maxLines: 2,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
-                                                ),
-                                                backgroundColor: MaterialStateProperty.all<Color>(Colors.green),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    document['desc'],
+                                                    style: const TextStyle(
+                                                      color: Colors.grey,
+                                                    ),
+                                                    maxLines: 2,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    showPrice,
+                                                    style: const TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              child: const Center(
-                                                child: Icon(
-                                                  Icons.add_shopping_cart,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
+                                            ),
+                                            IconButton(
                                               onPressed: () async {
                                                 try {
-                                                  await CartService(uid: widget.user!.uid)
-                                                      .addToCart(
-                                                    '${document['menuID']}',
-                                                    '${document['name']}',
+                                                  await CartService(uid: widget.user!.uid).addToCart(
+                                                    document['menuID'],
+                                                    document['name'],
                                                     document['price'],
-                                                    '${document['imageUrl']}',
+                                                    document['imageUrl'],
                                                     restaurant!.uid,
-                                                    context
+                                                    context,
                                                   );
                                                   Fluttertoast.showToast(
-                                                    msg: 'Successfully Add to Cart',
+                                                    msg: 'Successfully added to cart',
                                                     toastLength: Toast.LENGTH_SHORT,
                                                     gravity: ToastGravity.BOTTOM,
-                                                    fontSize: 20.0,
+                                                    fontSize: 16.0,
                                                     backgroundColor: Colors.green.withOpacity(0.8),
                                                     textColor: Colors.white,
                                                   );
                                                 } catch (e) {
                                                   Fluttertoast.showToast(
                                                     msg: e.toString(),
-                                                    fontSize: 20.0,
+                                                    fontSize: 16.0,
                                                     backgroundColor: Colors.redAccent.withOpacity(0.8),
                                                     textColor: Colors.white,
                                                   );
                                                 }
                                               },
+                                              icon: const Icon(Icons.add_shopping_cart),
+                                              color: Colors.green,
                                             ),
                                           ],
                                         ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+                                      );
+                                    },
+                                  );
+                                }
+                              },
+                            ),
+                          ],
                         ),
-                      );
-                    }
-                  },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+          },
         ),
       );
     } else {

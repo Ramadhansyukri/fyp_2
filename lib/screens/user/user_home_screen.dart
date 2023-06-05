@@ -9,7 +9,9 @@ import 'package:fyp_2/services/auth.dart';
 import '../../models/user_models.dart';
 import '../../shared/theme_helper.dart';
 import '../../widgets/header_widget.dart';
+import '../home_screen.dart';
 import 'cart_screen.dart';
+import 'order_history.dart';
 
 class UserHome extends StatefulWidget {
   //const RiderHome({Key? key}) : super(key: key);
@@ -49,8 +51,6 @@ class _UserHomeState extends State<UserHome> {
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Home",
@@ -108,6 +108,22 @@ class _UserHomeState extends State<UserHome> {
                   ),
                 ),
               ),
+              ListTile(
+                leading: Icon(Icons.home, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Home',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()), );
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.history_edu_outlined, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Orders',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => UserOrderHistory(user: widget.user)), );
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
               ListTile(
                 leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
@@ -201,7 +217,6 @@ class _UserHomeState extends State<UserHome> {
                               ),
                               onPressed: () {
                                 Navigator.push( context, MaterialPageRoute(builder: (context) => TopUpScreen(user: widget.user,)), );
-
                               },
                             ),
                           )

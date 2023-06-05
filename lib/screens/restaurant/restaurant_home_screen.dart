@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/restaurant/rest_view_order.dart';
+import 'package:fyp_2/screens/restaurant/restaurant_order_history.dart';
 import 'package:fyp_2/screens/restaurant/restaurant_profile_screen.dart';
 import 'package:fyp_2/screens/restaurant/view_menu.dart';
 import 'package:fyp_2/screens/wrapper.dart';
@@ -11,6 +12,7 @@ import '../../models/user_models.dart';
 import '../../services/auth.dart';
 import '../../shared/theme_helper.dart';
 import '../../widgets/header_widget.dart';
+import '../home_screen.dart';
 import 'add_menu_screen.dart';
 
 class RestaurantHome extends StatefulWidget {
@@ -97,42 +99,53 @@ class _RestaurantHomeState extends State<RestaurantHome> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     stops: const [0.0, 1.0],
-                    colors: [
-                      Theme.of(context).primaryColor,
-                      Theme.of(context).colorScheme.secondary,
-                    ],
+                    colors: [ Theme.of(context).primaryColor,Theme.of(context).colorScheme.secondary,],
                   ),
                 ),
                 child: Container(
                   alignment: Alignment.bottomLeft,
-                  child: const Text(
-                    "Food Delivery",
-                    style: TextStyle(
-                        fontSize: 25,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold),
+                  child: const Text("Food Delivery",
+                    style: TextStyle(fontSize: 25,color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
               ListTile(
-                leading: Icon(
-                  Icons.verified_user_sharp,
-                  size: _drawerIconSize,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                title: Text(
-                  'Profile Page',
-                  style: TextStyle(
-                      fontSize: _drawerFontSize,
-                      color: Theme.of(context).colorScheme.secondary),
-                ),
+                leading: Icon(Icons.home, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Home',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RestaurantProfile(user: widget.user),
-                    ),
-                  );
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()),);
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.history_edu_outlined, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Orders',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => RestOrderHistory(user: widget.user)), );
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => RestaurantProfile(user: widget.user)),);
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.restaurant_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Add Menu',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => AddMenu(user: widget.user)),);
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.edit_document, size: _drawerIconSize, color: Theme.of(context).colorScheme.secondary,),
+                title: Text('View Menu', style: TextStyle(fontSize: _drawerFontSize, color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ViewMenuScreen(user: widget.user),));
                 },
               ),
               Divider(
@@ -140,97 +153,20 @@ class _RestaurantHomeState extends State<RestaurantHome> {
                 height: 1,
               ),
               ListTile(
-                leading: Icon(
-                  Icons.restaurant_rounded,
-                  size: _drawerIconSize,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                title: Text(
-                  'Add Menu',
-                  style: TextStyle(
-                      fontSize: _drawerFontSize,
-                      color: Theme.of(context).colorScheme.secondary),
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AddMenu(user: widget.user),
-                    ),
-                  );
-                },
-              ),
-              Divider(
-                color: Theme.of(context).primaryColor,
-                height: 1,
-              ),
-              ListTile(
-                leading: Icon(
-                  Icons.edit_document,
-                  size: _drawerIconSize,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                title: Text(
-                  'View Menu',
-                  style: TextStyle(
-                      fontSize: _drawerFontSize,
-                      color: Theme.of(context).colorScheme.secondary),
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ViewMenuScreen(user: widget.user),
-                    ),
-                  );
-                },
-              ),
-              Divider(
-                color: Theme.of(context).primaryColor,
-                height: 1,
-              ),
-              ListTile(
-                leading: Icon(
-                  Icons.logout_rounded,
-                  size: _drawerIconSize,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                title: Text(
-                  'Logout',
-                  style: TextStyle(
-                      fontSize: _drawerFontSize,
-                      color: Theme.of(context).colorScheme.secondary),
-                ),
+                leading: Icon(Icons.logout_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.SignOut();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Wrapper()),
-                  );
+                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                 },
               ),
-              Divider(
-                color: Theme.of(context).primaryColor,
-                height: 1,
-              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
               ListTile(
-                leading: Icon(
-                  Icons.person_remove_rounded,
-                  size: _drawerIconSize,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                title: Text(
-                  'Delete Account',
-                  style: TextStyle(
-                      fontSize: _drawerFontSize,
-                      color: Theme.of(context).colorScheme.secondary),
-                ),
+                leading: Icon(Icons.person_remove_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Delete Account',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.deleteAccount(widget.user!.usertype);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Wrapper()),
-                  );
+                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
                 },
               ),
             ],
@@ -298,7 +234,7 @@ class _RestaurantHomeState extends State<RestaurantHome> {
                                 padding:
                                 const EdgeInsets.fromLTRB(20, 10, 20, 10),
                                 child: Text(
-                                  "Checkout".toUpperCase(),
+                                  "Cash Out".toUpperCase(),
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,

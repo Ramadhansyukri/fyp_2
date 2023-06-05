@@ -7,6 +7,7 @@ import '../../models/user_models.dart';
 import '../../services/auth.dart';
 import '../../services/database.dart';
 import '../../widgets/header_widget.dart';
+import 'order_history.dart';
 
 class UserProfile extends StatefulWidget {
   // const UserProfile({Key? key}) : super(key: key);
@@ -105,6 +106,22 @@ class _UserProfileState extends State<UserProfile> {
                 title: Text('Home',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
                   Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()), );
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.history_edu_outlined, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Orders',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => UserOrderHistory(user: widget.user)), );
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => UserProfile(user: widget.user,)), );
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),

@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:fyp_2/screens/home_screen.dart';
 import '../../models/order_model.dart';
-import '../../services/database.dart';
 
-class ViewOrderScreen extends StatefulWidget {
-  const ViewOrderScreen({Key? key, required this.order}) : super(key: key);
+class RestCompOrder extends StatefulWidget {
+  const RestCompOrder({Key? key, required this.order}) : super(key: key);
 
   final OrderModel? order;
 
   @override
-  State<ViewOrderScreen> createState() => _ViewOrderScreenState();
+  State<RestCompOrder> createState() => _RestCompOrderState();
 }
 
-class _ViewOrderScreenState extends State<ViewOrderScreen> {
+class _RestCompOrderState extends State<RestCompOrder> {
   late Future<DocumentSnapshot> _userFuture;
   late Future<DocumentSnapshot> _restaurantFuture;
   late Future<DocumentSnapshot> _riderFuture;
@@ -59,46 +56,6 @@ class _ViewOrderScreenState extends State<ViewOrderScreen> {
         .doc(orderID)
         .get();
     return orderDoc;
-  }
-
-  void _updateOrderStatus() async {
-    final orderDocRef =
-    FirebaseFirestore.instance.collection('Order').doc(widget.order!.orderID);
-
-    // Update the order status to 'Delivered'
-    orderDocRef.update({'status': 'Delivered'}).then((_) async {
-      // Add balance to the user based on the subtotal
-      await UserDatabaseService(uid: widget.order!.riderID.toString())
-          .addUserBalance(widget.order!.deliveryFee);
-
-      // Delete the currentorder subcollection inside the rider collection
-      final riderID = widget.order!.riderID.toString();
-      final currentOrderCollectionRef = FirebaseFirestore.instance
-          .collection('rider')
-          .doc(riderID)
-          .collection('currentorder');
-
-      final currentOrderDocs = await currentOrderCollectionRef.get();
-
-      for (final doc in currentOrderDocs.docs) {
-        await doc.reference.delete();
-      }
-
-      setState(() {
-        // Refresh the UI to reflect the updated order status
-        _orderFuture = _fetchOrder(widget.order!.orderID);
-      });
-      Fluttertoast.showToast(
-        msg: 'Order Complete',
-        fontSize: 20.0,
-        backgroundColor: Colors.green.withOpacity(0.8),
-        textColor: Colors.white,
-      );
-      Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()),);
-    }).catchError((error) {
-      // Handle the error if the update fails
-      print('Error updating order status: $error');
-    });
   }
 
   @override
@@ -319,14 +276,6 @@ class _ViewOrderScreenState extends State<ViewOrderScreen> {
                             ],
                           ),
                         ),
-                      ),
-                      ElevatedButton(
-                        onPressed: orderDoc['status'] == 'Ready' ? _updateOrderStatus : null,
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: orderDoc['status'] == 'Ready' ? Colors.green : Colors.grey,
-                        ),
-                        child: const Text('Delivered'),
                       ),
                     ],
                   ),

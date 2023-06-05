@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/home_screen.dart';
+import 'package:fyp_2/screens/rider/rider_order_history.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 
 import '../../models/user_models.dart';
@@ -81,6 +82,22 @@ class _RiderProfileState extends State<RiderProfile> {
                 title: Text('Home',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
                   Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()), );
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Profile',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => RiderProfile(user: widget.user)), );
+                },
+              ),
+              Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(Icons.history_edu_outlined, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Orders',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                onTap: () {
+                  Navigator.push( context, MaterialPageRoute(builder: (context) => RiderOrderHistory(user: widget.user)), );
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
