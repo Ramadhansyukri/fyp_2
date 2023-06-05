@@ -6,18 +6,18 @@ import '../../models/user_models.dart';
 import '../../services/auth.dart';
 import '../../widgets/header_widget.dart';
 
-class UserProfile extends StatefulWidget {
+class RiderProfile extends StatefulWidget {
   // const UserProfile({Key? key}) : super(key: key);
 
   final Users? user;
 
-  const UserProfile({Key? key,required this.user}) : super(key: key);
+  const RiderProfile({Key? key,required this.user}) : super(key: key);
 
   @override
-  State<UserProfile> createState() => _UserProfileState();
+  State<RiderProfile> createState() => _RiderProfileState();
 }
 
-class _UserProfileState extends State<UserProfile> {
+class _RiderProfileState extends State<RiderProfile> {
 
   final double  _drawerIconSize = 24;
   final double _drawerFontSize = 17;

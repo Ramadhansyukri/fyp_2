@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/home_screen.dart';
+import 'package:fyp_2/screens/restaurant/view_menu.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 
 import '../../models/user_models.dart';
@@ -93,6 +94,31 @@ class _RestaurantProfileState extends State<RestaurantProfile> {
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(
+                  Icons.edit_document,
+                  size: _drawerIconSize,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                title: Text(
+                  'View Menu',
+                  style: TextStyle(
+                      fontSize: _drawerFontSize,
+                      color: Theme.of(context).colorScheme.secondary),
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ViewMenuScreen(user: widget.user),
+                    ),
+                  );
+                },
+              ),
+              Divider(
+                color: Theme.of(context).primaryColor,
+                height: 1,
+              ),
               ListTile(
                 leading: Icon(Icons.logout_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),

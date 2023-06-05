@@ -74,14 +74,12 @@ class _CartScreenState extends State<CartScreen> {
       double deliveryFee = (distanceInMeters / 1000) * feePerKilometer;
 
       // Round up the delivery fee to 2 decimal places
-      _deliveryFee = double.parse((deliveryFee).ceilToDouble().toStringAsFixed(2));
+      setState(() {
+        _deliveryFee = double.parse((deliveryFee).ceilToDouble().toStringAsFixed(2));
+      });
     } catch (e) {
       print('Error calculating delivery fee: $e');
     }
-
-    setState(() {
-      _deliveryFee = _deliveryFee;
-    });
   }
 
   void updateAddress(String newAddress) {

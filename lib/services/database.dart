@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/models/cart_models.dart';
+import 'package:fyp_2/models/order_model.dart';
 
 import '../models/menu_models.dart';
 import '../models/restaurant_model.dart';
@@ -32,6 +33,8 @@ class UserDatabaseService{
       await FirebaseFirestore.instance.collection('customer').doc(uid).set(userData.toJson());
     }else if(usertype == 'Restaurant'){
       await FirebaseFirestore.instance.collection('restaurant').doc(uid).set(userData.toJson());
+    }else if(usertype == 'Rider'){
+      await FirebaseFirestore.instance.collection('rider').doc(uid).set(userData.toJson());
     }
 
     await userdata.doc(uid).set(userData.toJson());
@@ -308,18 +311,24 @@ class OrderDatabaseService {
     List<CartItem> cartItems = await CartService(uid: userid).getCartItems();
 
     try {
-      String orderId = DateTime.now().toIso8601String().substring(0, 16).replaceAll('-', '').replaceAll(':', '');
+      String userIdPrefix = userid.substring(0, 3);
+      String restIdPrefix = restId.substring(0, 3);
 
-      Map<String, dynamic> orderData = {
-        'userId': userid,
-        'restaurantId': restId,
-        'deliveryFee': deliveryFee,
-        'totalAmount': total,
-        'address': address,
-        'dateTime': DateTime.now(),
-      };
+      String orderId = '${userIdPrefix}_${restIdPrefix}_${DateTime.now().toIso8601String().substring(0, 16).replaceAll('-', '').replaceAll(':', '')}';
+      DateTime dateTime = DateTime.now();
 
-      await orderCollection.doc(orderId).set(orderData);
+      final orderData = OrderModel(
+        orderID: orderId,
+          userID: userid,
+          restID: restId,
+          deliveryFee: deliveryFee,
+          total: total,
+          address: address,
+          dateTime: dateTime,
+        status: 'Received'
+      );
+
+      await orderCollection.doc(orderId).set(orderData.toJson());
 
       List<Map<String, dynamic>> itemsData = cartItems.map((cartItem) => cartItem.toJson()).toList();
 
@@ -335,6 +344,97 @@ class OrderDatabaseService {
       // Handle the error
     }
   }
+
+  Future<void> assignOrderToRider(OrderModel order, String riderId) async {
+    try {
+      // Update the order document in the "Order" collection with the rider ID
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final orderDoc = await transaction.get(orderCollection.doc(order.orderID));
+        if (orderDoc.exists) {
+          transaction.update(orderCollection.doc(order.orderID), {'riderID': riderId});
+        }
+      });
+
+      /*// Retrieve the updated order document
+      final updatedOrderDoc = await orderCollection.doc(order.orderID).get();
+
+      if (updatedOrderDoc.exists) {
+        final orderData = updatedOrderDoc.data() as Map<String, dynamic>;
+        final itemsSnapshot = await updatedOrderDoc.reference.collection('items').get();
+
+        // Create a new document in the "OrderTaken" collection using the order document data
+        await FirebaseFirestore.instance.collection('OrderTaken').doc(order.orderID).set(orderData);
+
+        // Transfer each item document to the new "OrderTaken" collection
+        for (final itemDoc in itemsSnapshot.docs) {
+          await FirebaseFirestore.instance
+              .collection('OrderTaken')
+              .doc(order.orderID)
+              .collection('items')
+              .doc(itemDoc.id)
+              .set(itemDoc.data());
+
+          // Delete the item document from the original "Order" collection
+          await itemDoc.reference.delete();
+        }
+
+        // Delete the order document from the original "Order" collection
+        await orderCollection.doc(order.orderID).delete();
+
+        // Display a success message or perform any other necessary actions
+        print('Order assigned to rider successfully.');
+      } else {
+        print('Order document does not exist.');
+      }*/
+    } catch (e) {
+      print('Error assigning order to rider in Firestore: $e');
+      // Handle the error
+    }
+  }
+
+  Stream<List<OrderModel>> orderStream() {
+    return orderCollection
+        .where('riderID', isEqualTo: null)
+        .orderBy('dateTime', descending: false)
+        .snapshots()
+        .map((querySnapshot) => querySnapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return OrderModel.fromJson(data);
+    }).toList());
+  }
+}
+
+class RiderDatabaseService {
+  final String uid;
+  RiderDatabaseService({required this.uid});
+
+  final riderData = FirebaseFirestore.instance.collection('rider');
+
+  Future<bool> checkCurrentOrder() async {
+    final currentOrderSnapshot = await riderData.doc(uid).collection('currentorder').limit(1).get();
+    return currentOrderSnapshot.docs.isNotEmpty;
+  }
+
+  Future<OrderModel?> getCurrentOrder() async {
+    final currentOrderSnapshot = await riderData
+        .doc(uid)
+        .collection('currentorder')
+        .limit(1)
+        .get();
+
+    if (currentOrderSnapshot.docs.isNotEmpty) {
+      final data = currentOrderSnapshot.docs[0].data();
+      return OrderModel.fromJson(data);
+    }
+
+    return null;
+  }
+
+  Future<void> takeOrder(OrderModel order) async {
+    final currentOrderRef = riderData.doc(uid).collection('currentorder').doc(order.orderID);
+    await currentOrderRef.set(order.toJson());
+  }
+
 }
 
 

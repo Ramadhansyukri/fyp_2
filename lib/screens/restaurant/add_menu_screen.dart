@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fyp_2/screens/restaurant/restaurant_profile_screen.dart';
+import 'package:fyp_2/screens/restaurant/view_menu.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 import 'package:fyp_2/services/database.dart';
 import 'package:image_picker/image_picker.dart';
@@ -104,6 +105,31 @@ class _AddMenuState extends State<AddMenu> {
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
+              ListTile(
+                leading: Icon(
+                  Icons.edit_document,
+                  size: _drawerIconSize,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                title: Text(
+                  'View Menu',
+                  style: TextStyle(
+                      fontSize: _drawerFontSize,
+                      color: Theme.of(context).colorScheme.secondary),
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ViewMenuScreen(user: widget.user),
+                    ),
+                  );
+                },
+              ),
+              Divider(
+                color: Theme.of(context).primaryColor,
+                height: 1,
+              ),
               ListTile(
                 leading: Icon(Icons.logout_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
