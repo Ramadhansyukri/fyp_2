@@ -43,7 +43,7 @@ class AuthService{
 
   }
 
-  Future signIn(String email, String password) async {
+  Future signIn(String email, String password, BuildContext context,) async {
     try{
       await _auth.signInWithEmailAndPassword(email: email, password: password);
 

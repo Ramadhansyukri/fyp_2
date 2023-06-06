@@ -109,7 +109,7 @@ class _UserSignInState extends State<UserSignIn> {
                                   ),
                                   onPressed: () async{
                                     if (_formKey.currentState!.validate()){
-                                      await _auth.signIn(email, password);
+                                      await _auth.signIn(email, password, context);
                                     }
                                   },
                                 ),

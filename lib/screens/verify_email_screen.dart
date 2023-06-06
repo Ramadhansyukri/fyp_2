@@ -79,10 +79,10 @@ class _VerifyEmailState extends State<VerifyEmail> {
                     Container(
                       alignment: Alignment.topLeft,
                       margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                      child: Column(
+                      child: const Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text('Please verify your email',
                             style: TextStyle(
                                 fontSize: 35,

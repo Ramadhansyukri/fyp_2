@@ -1,24 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fyp_2/screens/biometric_screen.dart';
 import 'package:fyp_2/screens/user_auth_screen.dart';
-import 'package:fyp_2/screens/verify_email_screen.dart';
-
-
-/*class Wrapper extends StatelessWidget {
-  const Wrapper({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-
-    final user = Provider.of<Users?>(context);
-
-    if (user == null) {
-      return UserAuth();
-    }else {
-      return UserHome();
-    }
-  }
-}*/
 
 class Wrapper extends StatefulWidget {
   const Wrapper({Key? key}) : super(key: key);
@@ -40,7 +23,7 @@ class _WrapperState extends State<Wrapper> {
           } else if (snapshot.hasError){
             return const Center(child: Text('Something when wrong!'));
           } else if (snapshot.hasData) {
-            return const VerifyEmail();
+            return const Biometric();
           } else {
             return const UserAuth();
           }
@@ -49,4 +32,3 @@ class _WrapperState extends State<Wrapper> {
     );
   }
 }
-
