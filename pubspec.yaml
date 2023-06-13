@@ -45,6 +45,9 @@ dependencies:
   flutter_stripe: ^9.2.0
   http: ^0.13.0
   local_auth: ^2.1.6
+  get: ^4.6.5
+  motion_toast: ^2.6.8
+  cool_alert: ^2.0.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

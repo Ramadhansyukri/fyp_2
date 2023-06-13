@@ -5,6 +5,7 @@ import 'package:fyp_2/screens/user/user_profile_screen.dart';
 import 'package:fyp_2/screens/user/view_restaurant_screen.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 import 'package:fyp_2/services/auth.dart';
+import 'package:get/get.dart';
 
 import '../../models/user_models.dart';
 import '../../shared/theme_helper.dart';
@@ -24,7 +25,7 @@ class UserHome extends StatefulWidget {
   State<UserHome> createState() => _UserHomeState();
 }
 
-class _UserHomeState extends State<UserHome> {
+class _UserHomeState extends State<UserHome> with SingleTickerProviderStateMixin {
 
   final double  _drawerIconSize = 24;
   final double _drawerFontSize = 17;
@@ -33,19 +34,58 @@ class _UserHomeState extends State<UserHome> {
   final db = FirebaseFirestore.instance;
   double _balance = 0;
 
+  late AnimationController _animationController;
+  late Animation<Offset> _headerOffsetAnimation;
+  late Animation<Offset> _balanceOffsetAnimation;
+
   @override
   void initState() {
-    getBalance();
     super.initState();
+    getBalance();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _headerOffsetAnimation = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    _balanceOffsetAnimation = Tween<Offset>(
+      begin: const Offset(0, -4),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.decelerate,
+      ),
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   void getBalance(){
     final userStream = db.collection("users").doc(widget.user!.uid).snapshots();
 
     userStream.listen((event) {
-      setState(() {
-        _balance = event.data()!['balance'].toDouble();
-      });
+      if (event.data() != null && event.data()!.containsKey('balance')) {
+        setState(() {
+          _balance = event.data()!['balance'].toDouble();
+        });
+      }
     });
   }
 
@@ -70,7 +110,7 @@ class _UserHomeState extends State<UserHome> {
         actions: <Widget>[
           IconButton(
               onPressed: (){
-                Navigator.push( context, MaterialPageRoute(builder: (context) => CartScreen(user: widget.user)),);
+                Get.to(() => CartScreen(user: widget.user), transition: Transition.cupertino, duration: const Duration(seconds: 1));
               },
               icon: const Icon(Icons.shopping_cart)
           )
@@ -112,15 +152,15 @@ class _UserHomeState extends State<UserHome> {
                 leading: Icon(Icons.home, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Home',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()), );
-                },
+                  Get.offAll(() => const Home(), transition: Transition.rightToLeft);
+                  },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
               ListTile(
                 leading: Icon(Icons.history_edu_outlined, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Orders',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => UserOrderHistory(user: widget.user)), );
+                  Get.to(() => UserOrderHistory(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -128,7 +168,7 @@ class _UserHomeState extends State<UserHome> {
                 leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => UserProfile(user: widget.user,)), );
+                  Get.to(() => UserProfile(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -137,209 +177,223 @@ class _UserHomeState extends State<UserHome> {
                 title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.SignOut();
-                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
-                },
-              ),
-              Divider(color: Theme.of(context).primaryColor, height: 1,),
-              ListTile(
-                leading: Icon(Icons.person_remove_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Delete Account',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
-                onTap: () async {
-                  await _auth.deleteAccount(widget.user!.usertype);
-                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
+                  Get.offAll(() => const Wrapper(), transition: Transition.rightToLeftWithFade);
                 },
               ),
             ],
           ),
         ),
       ),
-      body: Builder(
-        builder: (context) => SizedBox(
-          height: MediaQuery.of(context).size.height,
-          child: Column(
-            children: [
-              Stack(
-                children: [
-                  const SizedBox(height: 100, child: HeaderWidget(100,false,Icons.house_rounded),),
-                  Container(
-                    height: 120,
-                    margin: const EdgeInsets.only(left: 30, right: 30, bottom: 15, top: 15),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      color: Colors.white,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
-                      child: Row(
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Balance",
-                                maxLines: 1,
-                                style: TextStyle(
-                                    fontFamily: 'Roboto',
-                                    color: Colors.black,
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.w400
-                                ),
-                              ),
-                              const SizedBox(height: 10,),
-                              Text(
-                                _balance.toStringAsFixed(2),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    fontFamily: 'Roboto',
-                                    color: Colors.black,
-                                    fontSize: 40,
-                                    fontWeight: FontWeight.w800
-                                ),
-                              ),
-                            ],
+      body: SingleChildScrollView(
+        child: Builder(
+          builder: (context) => SizedBox(
+            height: MediaQuery.of(context).size.height,
+            child: Column(
+              children: [
+                Stack(
+                  children: [
+                    AnimatedBuilder(
+                      animation: _animationController,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: _headerOffsetAnimation.value * 100,
+                          child: const SizedBox(
+                            height: 100,
+                            child: HeaderWidget(100, false, Icons.house_rounded),
                           ),
-                          Container(
-                            margin: const EdgeInsets.only(left: 15),
-                            decoration: ThemeHelper().buttonBoxDecoration(context),
-                            child: ElevatedButton(
-                              style: ThemeHelper().buttonStyle(),
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                                child: Text(
-                                  "+ Reload".toUpperCase(),
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              onPressed: () {
-                                Navigator.push( context, MaterialPageRoute(builder: (context) => TopUpScreen(user: widget.user,)), );
-                              },
+                        );
+                      },
+                    ),
+                    AnimatedBuilder(
+                      animation: _animationController,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: _balanceOffsetAnimation.value * 100,
+                          child: Container(
+                            height: 120,
+                            margin: const EdgeInsets.only(left: 30, right: 30, bottom: 15, top: 15),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              color: Colors.white,
                             ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: Text(
-                        "All Restaurant".toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20,),
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: db.collection('restaurant').snapshots(),
-                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    }
-                    if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                      return const Text('No data available');
-                    }
-                    else{
-                      return ListView.builder(
-                        itemCount: snapshot.data!.docs.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          final document = snapshot.data!.docs[index];
-                          final restaurantID = document.id;
-                          return GestureDetector(
-                            onTap: (){
-                              Navigator.push( context, MaterialPageRoute(builder: (context) => ViewRestaurant(restID: restaurantID, user: widget.user,)),);
-                            },
                             child: Container(
-                              height: 200,
-                              margin: const EdgeInsets.all(15),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(30),
-                                color: Colors.white,
-                              ),
-                              child: Stack(
+                              padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
+                              child: Row(
                                 children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(30),
-                                    child: Image.network(
-                                      '${document['imageUrl']}',
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                    ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        "Balance",
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                            fontFamily: 'Roboto',
+                                            color: Colors.black,
+                                            fontSize: 30,
+                                            fontWeight: FontWeight.w400
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10,),
+                                      Text(
+                                        _balance.toStringAsFixed(2),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                            fontFamily: 'Roboto',
+                                            color: Colors.black,
+                                            fontSize: 40,
+                                            fontWeight: FontWeight.w800
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Positioned(
-                                      left: 0,
-                                      bottom: 0,
-                                      right: 0,
-                                      child: Container(
-                                        height: 60,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.only(
-                                            topLeft: Radius.circular(0),
-                                            topRight: Radius.circular(0),
-                                            bottomLeft: Radius.circular(30),
-                                            bottomRight: Radius.circular(30),
+                                  Container(
+                                    margin: const EdgeInsets.only(left: 15),
+                                    decoration: ThemeHelper().buttonBoxDecoration(context),
+                                    child: ElevatedButton(
+                                      style: ThemeHelper().buttonStyle(),
+                                      child: Padding(
+                                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                        child: Text(
+                                          "+ Reload".toUpperCase(),
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
                                           ),
                                         ),
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                          children: [
-                                            const SizedBox(width: 16), // Adjust the spacing as needed
-                                            SizedBox(
-                                              width: 250,
-                                              child: Column(
-                                                children: [
-                                                  Text('${document['name']}',
-                                                    style: const TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 20
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 3,),
-                                                  Text('${document['phone']}'),
-                                                ],
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      )
-                                  ),
+                                      ),
+                                      onPressed: () {
+                                        Get.to(()=> TopUpScreen(user: widget.user,), transition: Transition.downToUp, duration: const Duration(seconds: 1));
+                                      },
+                                    ),
+                                  )
                                 ],
                               ),
                             ),
-                          );
-                        },
-                      );
-                    }
-                  },
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text(
+                          "All Restaurant".toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20,),
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: db.collection('restaurant').snapshots(),
+                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      }
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      }
+                      if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
+                        return const Text('No data available');
+                      }
+                      else{
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: snapshot.data!.docs.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final document = snapshot.data!.docs[index];
+                            final restaurantID = document.id;
+                            return GestureDetector(
+                              onTap: (){
+                                Get.to(() => ViewRestaurant(restID: restaurantID, user: widget.user,), transition: Transition.size, duration: const Duration(seconds: 1));
+                                },
+                              child: Container(
+                                height: 200,
+                                margin: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  color: Colors.white,
+                                ),
+                                child: Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(30),
+                                      child: Image.network(
+                                        '${document['imageUrl']}',
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                      ),
+                                    ),
+                                    Positioned(
+                                        left: 0,
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          height: 60,
+                                          decoration: const BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.only(
+                                              topLeft: Radius.circular(0),
+                                              topRight: Radius.circular(0),
+                                              bottomLeft: Radius.circular(30),
+                                              bottomRight: Radius.circular(30),
+                                            ),
+                                          ),
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              const SizedBox(width: 16), // Adjust the spacing as needed
+                                              SizedBox(
+                                                width: 250,
+                                                child: Column(
+                                                  children: [
+                                                    Text('${document['name']}',
+                                                      style: const TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 20
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 3,),
+                                                    Text('${document['phone']}'),
+                                                  ],
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        )
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
+      )
     );
   }
 }

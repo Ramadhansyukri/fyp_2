@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/restaurant/rest_complete_order.dart';
 import 'package:fyp_2/screens/restaurant/rest_view_order.dart';
 import 'package:fyp_2/screens/restaurant/restaurant_profile_screen.dart';
 import 'package:fyp_2/screens/restaurant/view_menu.dart';
+import 'package:get/get.dart';
 
 import '../../models/order_model.dart';
 import '../../models/user_models.dart';
@@ -23,13 +23,42 @@ class RestOrderHistory extends StatefulWidget {
   State<RestOrderHistory> createState() => _RestOrderHistoryState();
 }
 
-class _RestOrderHistoryState extends State<RestOrderHistory> {
+class _RestOrderHistoryState extends State<RestOrderHistory> with SingleTickerProviderStateMixin {
   final double _drawerIconSize = 24;
   final double _drawerFontSize = 17;
 
-  final String uid = FirebaseAuth.instance.currentUser!.uid;
-
   final AuthService _auth = AuthService();
+
+  late AnimationController _animationController;
+  late Animation<Offset> _headerOffsetAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _headerOffsetAnimation = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +119,7 @@ class _RestOrderHistoryState extends State<RestOrderHistory> {
                 leading: Icon(Icons.home, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Home',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()),);
+                  Get.offAll(() => const Home(), transition: Transition.rightToLeft);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -98,7 +127,7 @@ class _RestOrderHistoryState extends State<RestOrderHistory> {
                 leading: Icon(Icons.history_edu_outlined, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Orders',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => RestOrderHistory(user: widget.user)), );
+                  Get.to(() => RestOrderHistory(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -106,7 +135,7 @@ class _RestOrderHistoryState extends State<RestOrderHistory> {
                 leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => RestaurantProfile(user: widget.user)),);
+                  Get.to(() => RestaurantProfile(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -114,7 +143,7 @@ class _RestOrderHistoryState extends State<RestOrderHistory> {
                 leading: Icon(Icons.restaurant_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Add Menu',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => AddMenu(user: widget.user)),);
+                  Get.to(() => AddMenu(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -122,7 +151,7 @@ class _RestOrderHistoryState extends State<RestOrderHistory> {
                 leading: Icon(Icons.edit_document, size: _drawerIconSize, color: Theme.of(context).colorScheme.secondary,),
                 title: Text('View Menu', style: TextStyle(fontSize: _drawerFontSize, color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => ViewMenuScreen(user: widget.user),));
+                  Get.to(() => ViewMenuScreen(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(
@@ -134,16 +163,7 @@ class _RestOrderHistoryState extends State<RestOrderHistory> {
                 title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.SignOut();
-                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
-                },
-              ),
-              Divider(color: Theme.of(context).primaryColor, height: 1,),
-              ListTile(
-                leading: Icon(Icons.person_remove_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Delete Account',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
-                onTap: () async {
-                  await _auth.deleteAccount(widget.user!.usertype);
-                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
+                  Get.offAll(() => const Wrapper(), transition: Transition.fade);
                 },
               ),
             ],
@@ -157,10 +177,17 @@ class _RestOrderHistoryState extends State<RestOrderHistory> {
             width: MediaQuery.of(context).size.width,
             child: Stack(
               children: [
-                SizedBox(
-                  height: 100,
-                  width: MediaQuery.of(context).size.width,
-                  child: const HeaderWidget(100, false, Icons.house_rounded),
+                AnimatedBuilder(
+                  animation: _animationController,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: _headerOffsetAnimation.value * 100,
+                      child: const SizedBox(
+                        height: 100,
+                        child: HeaderWidget(100, false, Icons.house_rounded),
+                      ),
+                    );
+                  },
                 ),
                 SizedBox(
                   height: 70,
@@ -208,21 +235,15 @@ class _RestOrderHistoryState extends State<RestOrderHistory> {
                               } else {
                                 return Expanded(
                                   child: ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
                                     itemCount: orders.length,
                                     itemBuilder: (context, index) {
                                       final orderDoc = orders[index].data() as Map<String, dynamic>;
                                       final OrderModel order = OrderModel.fromJson(orderDoc);
                                       return GestureDetector(
                                         onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  RestViewOrder(
-                                                    order: order,
-                                                  ),
-                                            ),
-                                          );
+                                          Get.to(() => RestViewOrder(order: order), transition: Transition.size, duration: const Duration(seconds: 1));
                                         },
                                         child: Card(
                                           child: Padding(
@@ -283,21 +304,15 @@ class _RestOrderHistoryState extends State<RestOrderHistory> {
                               } else {
                                 return Expanded(
                                   child: ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
                                     itemCount: orders.length,
                                     itemBuilder: (context, index) {
                                       final orderDoc = orders[index].data() as Map<String, dynamic>;
                                       final OrderModel order = OrderModel.fromJson(orderDoc);
                                       return GestureDetector(
                                         onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  RestCompOrder(
-                                                    order: order,
-                                                  ),
-                                            ),
-                                          );
+                                          Get.to(() => RestCompOrder(order: order), transition: Transition.size, duration: const Duration(seconds: 1));
                                         },
                                         child: Card(
                                           child: Padding(

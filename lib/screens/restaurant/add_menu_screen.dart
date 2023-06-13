@@ -2,18 +2,20 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fyp_2/screens/restaurant/restaurant_order_history.dart';
 import 'package:fyp_2/screens/restaurant/restaurant_profile_screen.dart';
 import 'package:fyp_2/screens/restaurant/view_menu.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 import 'package:fyp_2/services/database.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:motion_toast/motion_toast.dart';
 
 import '../../models/user_models.dart';
 import '../../services/auth.dart';
 import '../../shared/theme_helper.dart';
+import '../../widgets/header_widget.dart';
 import '../home_screen.dart';
 
 class AddMenu extends StatefulWidget {
@@ -26,7 +28,7 @@ class AddMenu extends StatefulWidget {
   State<AddMenu> createState() => _AddMenuState();
 }
 
-class _AddMenuState extends State<AddMenu> {
+class _AddMenuState extends State<AddMenu> with SingleTickerProviderStateMixin {
   final double  _drawerIconSize = 24;
   final double _drawerFontSize = 17;
   final _formKey = GlobalKey<FormState>();
@@ -38,6 +40,37 @@ class _AddMenuState extends State<AddMenu> {
   var foodName = "";
   var foodDesc = "";
   double amount = 0.00;
+
+  late AnimationController _animationController;
+  late Animation<Offset> _headerOffsetAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _headerOffsetAnimation = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +127,7 @@ class _AddMenuState extends State<AddMenu> {
                 leading: Icon(Icons.home, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Home',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()),);
+                  Get.offAll(() => const Home(), transition: Transition.rightToLeft);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -102,7 +135,7 @@ class _AddMenuState extends State<AddMenu> {
                 leading: Icon(Icons.history_edu_outlined, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Orders',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => RestOrderHistory(user: widget.user)), );
+                  Get.to(() => RestOrderHistory(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -110,7 +143,7 @@ class _AddMenuState extends State<AddMenu> {
                 leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => RestaurantProfile(user: widget.user)),);
+                  Get.to(() => RestaurantProfile(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -118,7 +151,7 @@ class _AddMenuState extends State<AddMenu> {
                 leading: Icon(Icons.restaurant_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Add Menu',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => AddMenu(user: widget.user)),);
+                  Get.to(() => AddMenu(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -126,7 +159,7 @@ class _AddMenuState extends State<AddMenu> {
                 leading: Icon(Icons.edit_document, size: _drawerIconSize, color: Theme.of(context).colorScheme.secondary,),
                 title: Text('View Menu', style: TextStyle(fontSize: _drawerFontSize, color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => ViewMenuScreen(user: widget.user),));
+                  Get.to(() => ViewMenuScreen(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(
@@ -138,16 +171,7 @@ class _AddMenuState extends State<AddMenu> {
                 title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.SignOut();
-                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
-                },
-              ),
-              Divider(color: Theme.of(context).primaryColor, height: 1,),
-              ListTile(
-                leading: Icon(Icons.person_remove_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Delete Account',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
-                onTap: () async {
-                  await _auth.deleteAccount(widget.user!.usertype);
-                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
+                  Get.offAll(() => const Wrapper(), transition: Transition.fade);
                 },
               ),
             ],
@@ -156,26 +180,36 @@ class _AddMenuState extends State<AddMenu> {
       ),
       body: Builder(
         builder: (context) => SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              const SizedBox(height: 30.0),
+          child: Stack(
+            children: [
+              AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: _headerOffsetAnimation.value * 100,
+                    child: const SizedBox(
+                      height: 100,
+                      child: HeaderWidget(100, false, Icons.house_rounded),
+                    ),
+                  );
+                },
+              ),
               Container(
-                color: Colors.white10,
+                margin: const EdgeInsets.only(top: 30),
                 width: 400,
                 child: Column(
                   children: [
                     Form(
-                      key: _formKey,
+                        key: _formKey,
                         child: Column(
                           children: [
-                            Column(
+                            const Column(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: const <Widget>[
+                              children: <Widget>[
                                 Text(
                                   'Add Details',
                                   style: TextStyle(
-                                      color: Colors.blueGrey,
+                                      color: Colors.white,
                                       fontFamily: 'Raleway',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 27),
@@ -346,22 +380,21 @@ class _AddMenuState extends State<AddMenu> {
                                           imageUrl = await referenceImageToUpload.getDownloadURL();
 
                                           await MenuDatabaseService(uid: FirebaseAuth.instance.currentUser!.uid).setMenu(widget.user!.name, imageUrl, foodName, foodDesc, amount);
-                                          Fluttertoast.showToast(
-                                              msg: "Successfully Added New Menu",
-                                              toastLength: Toast.LENGTH_SHORT,
-                                              gravity: ToastGravity.BOTTOM,
-                                              fontSize: 20.0,
-                                              backgroundColor: Colors.green.withOpacity(0.8),
-                                              textColor: Colors.white
-                                          );
-                                          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Home()));
+                                          if (context.mounted){
+                                            MotionToast.success(
+                                              title:  const Text("Menu Added"),
+                                              description:  const Text("Successfully added menu"),
+                                              animationDuration: const Duration(seconds: 1),
+                                              toastDuration: const Duration(seconds: 2),
+                                            ).show(context);
+                                          }
                                         }catch(e){
-                                          Fluttertoast.showToast(
-                                              msg: e.toString(),
-                                              fontSize: 20.0,
-                                              backgroundColor: Colors.redAccent.withOpacity(0.8),
-                                              textColor: Colors.white
-                                          );
+                                          MotionToast.error(
+                                            title:  const Text("Error adding menu"),
+                                            description:  Text(e.toString()),
+                                            animationDuration: const Duration(seconds: 1),
+                                            toastDuration: const Duration(seconds: 2),
+                                          ).show(context);
                                         }
                                       }
                                     },
@@ -376,7 +409,7 @@ class _AddMenuState extends State<AddMenu> {
                 ),
               )
             ],
-          ),
+          )
         ),
       ),
     );

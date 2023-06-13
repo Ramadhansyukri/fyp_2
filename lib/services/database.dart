@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/models/cart_models.dart';
 import 'package:fyp_2/models/order_model.dart';
@@ -200,8 +201,9 @@ class CartService{
 
   final userdata = FirebaseFirestore.instance.collection('customer');
 
-  Future addToCart(String menuID, String menuName, double price, String imageUrl, String? restID, BuildContext context) async{
+  Future<bool> addToCart(String menuID, String menuName, double price, String imageUrl, String? restID, String? instruction, BuildContext context) async{
     final existingCart = await userdata.doc(uid).collection('cart').get();
+    bool cancelResult = true;
 
     // Check if any cart item already exists in the cart
     if (existingCart.docs.isNotEmpty) {
@@ -217,35 +219,30 @@ class CartService{
       // Compare the restaurantIDs
       if (existingRestaurantID != newRestaurantID) {
         // Show alert dialog and handle the user's choice
-        final result = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Different Restaurant'),
-            content: const Text(
-              'You already have items from a different restaurant in your cart. '
-                  'Adding items from a different restaurant will clear your current cart. '
-                  'Do you want to continue?',
-            ),
-            actions: [
-              TextButton(
-                child: const Text('Cancel'),
-                onPressed: () => Navigator.of(context).pop(false),
-              ),
-              TextButton(
-                child: const Text('Continue'),
-                onPressed: () => Navigator.of(context).pop(true),
-              ),
-            ],
-          ),
+
+        await CoolAlert.show(
+            context: context,
+            type: CoolAlertType.confirm,
+            title: "Item from different restaurant",
+            text: 'You cannot add item from a different restaurant, do you want to clear your cart and add this item?',
+            confirmBtnText: 'Yes',
+            cancelBtnText: 'No',
+            confirmBtnColor: Colors.green,
+            onConfirmBtnTap: () async {
+              cancelResult = true;
+            },
+            onCancelBtnTap: () {
+              cancelResult = false;
+            }
         );
 
         // Handle the user's choice
-        if (result != null && result) {
+        if (cancelResult == true) {
           // Clear the existing cart
           await clearCart();
         } else {
           // User chose to cancel, so return without adding the new item
-          return;
+          return cancelResult;
         }
       }
     }
@@ -256,10 +253,12 @@ class CartService{
       price: price,
       imageUrl: imageUrl,
       restID: restID as String,
+      instruction: instruction,
       quantity: 1,
     );
 
     await userdata.doc(uid).collection('cart').doc(menuID).set(cartData.toJson());
+    return cancelResult;
   }
 
   Future<List<CartItem>> getCartItems() async {

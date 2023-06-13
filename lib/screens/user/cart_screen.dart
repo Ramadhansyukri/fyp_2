@@ -1,8 +1,11 @@
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
-import 'package:fyp_2/screens/home_screen.dart';
 import 'package:fyp_2/screens/user/set_address.dart';
+import 'package:fyp_2/screens/user/topup.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
+import 'package:motion_toast/motion_toast.dart';
 import '../../models/cart_models.dart';
 import '../../models/user_models.dart';
 import '../../services/database.dart';
@@ -162,6 +165,10 @@ class _CartScreenState extends State<CartScreen> {
             onPressed: (){
               _clearCart();
               _calculateDeliveryFee();
+              MotionToast.delete(
+                  title:  const Text("Deleted"),
+                  description:  const Text("The item is deleted")
+              ).show(context);
             },
             icon: const Icon(Icons.delete),
           ),
@@ -269,7 +276,17 @@ class _CartScreenState extends State<CartScreen> {
                       alignment: Alignment.bottomRight,
                       child: ElevatedButton(
                         onPressed: () {
-                          _checkout();
+                          CoolAlert.show(
+                              context: context,
+                              type: CoolAlertType.warning,
+                              title: "Confirmation",
+                              text: 'Are you sure you?',
+                              confirmBtnText: 'Yes',
+                              confirmBtnColor: Colors.green,
+                              onConfirmBtnTap: () {
+                                _checkout();
+                              }
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white, backgroundColor: Colors.green,
@@ -294,23 +311,20 @@ class _CartScreenState extends State<CartScreen> {
 
     if (totalAmount > userBalance) {
       // Display error message and stop the process
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Insufficient Balance'),
-            content: const Text('Your balance is not sufficient to complete the order.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+      if (context.mounted){
+        CoolAlert.show(
+            context: context,
+            type: CoolAlertType.confirm,
+            title: "Insufficient Balance",
+            text: 'Top up now?',
+            confirmBtnText: 'Yes',
+            cancelBtnText: 'No',
+            confirmBtnColor: Colors.green,
+            onConfirmBtnTap: () {
+              Get.to(()=> TopUpScreen(user: widget.user,), transition: Transition.downToUp, duration: const Duration(seconds: 1));
+            }
+        );
+      }
       return;
     }
 
@@ -321,7 +335,14 @@ class _CartScreenState extends State<CartScreen> {
     await OrderDatabaseService().createOrder(widget.user!.uid.toString(), _cartItems[0].restID, _deliveryFee, totalAmount, _userAddress); // Replace this with your logic to save order data to Firebase
 
     // Refresh the screen or navigate to a different screen
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Home()));
+    if (context.mounted){
+      CoolAlert.show(
+        context: context,
+        type: CoolAlertType.success,
+        text: 'Transaction completed successfully!',
+        autoCloseDuration: const Duration(seconds: 2),
+      );
+    }
   }
 }
 

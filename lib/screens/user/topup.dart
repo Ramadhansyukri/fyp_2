@@ -1,8 +1,8 @@
 import 'dart:convert';
 
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe_package;
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fyp_2/services/database.dart';
 import 'package:http/http.dart' as http;
 
@@ -109,12 +109,11 @@ class _TopUpScreenState extends State<TopUpScreen> {
                     ),
                     onPressed: () async {
                       if(formKey.currentState!.validate()) {
-                        Fluttertoast.showToast(msg: "validated");
                         await _pay(context);
                       }
                     },
                     child: const Text(
-                      "Pay",
+                      "Top up",
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 18.0
@@ -166,7 +165,12 @@ class _TopUpScreenState extends State<TopUpScreen> {
 
       await UserDatabaseService(uid: widget.user!.uid.toString()).addUserBalance(double.parse(amountController.text))
           .then((value) => {
-        Fluttertoast.showToast(msg: "Payment successfully completed"),
+        CoolAlert.show(
+          context: context,
+          type: CoolAlertType.success,
+          text: 'Transaction completed successfully!',
+          autoCloseDuration: const Duration(seconds: 2),
+        ),
       });
     } on Exception catch (e) {
       if (e is stripe_package.StripeException) {
@@ -189,4 +193,3 @@ class _TopUpScreenState extends State<TopUpScreen> {
     }
   }
 }
-

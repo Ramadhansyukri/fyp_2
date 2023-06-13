@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fyp_2/services/database.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:motion_toast/motion_toast.dart';
 
 import '../../models/user_models.dart';
 import '../../shared/theme_helper.dart';
@@ -201,25 +201,22 @@ class _AddressScreenState extends State<AddressScreen> {
                       fullAddress = '$addressLine1,$addressLine2,$addressLine3';
                       try{
                         await UserDatabaseService(uid: widget.user!.uid.toString()).updateAddress(fullAddress, widget.user!.usertype);
-                        Fluttertoast.showToast(
-                            msg: "Successfully Save Address",
-                            toastLength: Toast.LENGTH_SHORT,
-                            gravity: ToastGravity.BOTTOM,
-                            fontSize: 20.0,
-                            backgroundColor: Colors.green.withOpacity(0.8),
-                            textColor: Colors.white
-                        );
+                        if (context.mounted){
+                          MotionToast.success(
+                            title:  const Text("Address updated"),
+                            description:  const Text("Successfully save address"),
+                            animationDuration: const Duration(seconds: 1),
+                            toastDuration: const Duration(seconds: 2),
+                          ).show(context);
+                        }
                         widget.updateAddress(fullAddress);
-                        Navigator.pop(context);
                       }catch(e){
-                        Fluttertoast.showToast(
-                            msg: e.toString(),
-                            toastLength: Toast.LENGTH_SHORT,
-                            gravity: ToastGravity.BOTTOM,
-                            fontSize: 20.0,
-                            backgroundColor: Colors.red.withOpacity(0.8),
-                            textColor: Colors.white
-                        );
+                        MotionToast.error(
+                          title:  const Text("Error updating address"),
+                          description:  Text(e.toString()),
+                          animationDuration: const Duration(seconds: 1),
+                          toastDuration: const Duration(seconds: 2),
+                        ).show(context);
                       }
                     }
                   },

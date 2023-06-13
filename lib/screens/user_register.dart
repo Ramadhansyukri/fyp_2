@@ -334,10 +334,12 @@ class _UserRegState extends State<UserReg> {
                                   imageUrl = await referenceImageToUpload.getDownloadURL();
                                 }
                                 fullAddress = '$addressLine1,$addressLine2,$addressLine3';
-                                await _auth.registerWithEmailAndPassword(
-                                  email, password, username, phoneNo, _usertype!, context,
-                                    imageUrl, fullAddress
-                                );
+                                if (context.mounted){
+                                  await _auth.registerWithEmailAndPassword(
+                                      email, password, username, phoneNo, _usertype!, context,
+                                      imageUrl, fullAddress
+                                  );
+                                }
                               }
                             },
                           ),

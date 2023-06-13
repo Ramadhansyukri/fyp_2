@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fyp_2/screens/rider/rider_order_history.dart';
 import 'package:fyp_2/screens/rider/rider_profile_screen.dart';
 import 'package:fyp_2/screens/rider/view_order.dart';
 import 'package:fyp_2/services/database.dart';
+import 'package:get/get.dart';
+import 'package:motion_toast/motion_toast.dart';
 
 import '../../models/order_model.dart';
 import '../../models/user_models.dart';
@@ -23,18 +24,55 @@ class RiderHome extends StatefulWidget {
   State<RiderHome> createState() => _RiderHomeState();
 }
 
-class _RiderHomeState extends State<RiderHome> {
+class _RiderHomeState extends State<RiderHome> with SingleTickerProviderStateMixin {
   final double _drawerIconSize = 24;
   final double _drawerFontSize = 17;
   final AuthService _auth = AuthService();
   OrderModel? _currentOrder;
   double _balance = 0;
 
+  late AnimationController _animationController;
+  late Animation<Offset> _headerOffsetAnimation;
+  late Animation<Offset> _balanceOffsetAnimation;
+
   @override
   void initState() {
     super.initState();
     getBalance();
     checkOrder();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _headerOffsetAnimation = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    _balanceOffsetAnimation = Tween<Offset>(
+      begin: const Offset(0, -4),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.decelerate,
+      ),
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   void getBalance() {
@@ -44,9 +82,11 @@ class _RiderHomeState extends State<RiderHome> {
         .snapshots();
 
     userStream.listen((event) {
-      setState(() {
-        _balance = event.data()!['balance'].toDouble();
-      });
+      if (event.data() != null && event.data()!.containsKey('balance')) {
+        setState(() {
+          _balance = event.data()!['balance'].toDouble();
+        });
+      }
     });
   }
 
@@ -71,12 +111,14 @@ class _RiderHomeState extends State<RiderHome> {
     final isCurrentOrder = await RiderDatabaseService(uid: widget.user!.uid.toString()).checkCurrentOrder();
 
     if (isCurrentOrder) {
-      Fluttertoast.showToast(
-        msg: 'Please complete your current order',
-        fontSize: 20.0,
-        backgroundColor: Colors.redAccent.withOpacity(0.8),
-        textColor: Colors.white,
-      );
+      if (context.mounted){
+        MotionToast.error(
+          title: const Text("Error taking order"),
+          description: const Text("Please complete current order"),
+          animationDuration: const Duration(seconds: 1),
+          toastDuration: const Duration(seconds: 2),
+        ).show(context);
+      }
     } else {
 
       try{
@@ -86,18 +128,27 @@ class _RiderHomeState extends State<RiderHome> {
         });
         await RiderDatabaseService(uid: widget.user!.uid.toString()).takeOrder(order);
 
-        Fluttertoast.showToast(
-          msg: 'Order Accepted',
-          fontSize: 20.0,
-          backgroundColor: Colors.green.withOpacity(0.8),
-          textColor: Colors.white,
-        );
+        if (context.mounted){
+          MotionToast.success(
+            title:  const Text("Order Taken"),
+            description:  const Text("Please Complete the order"),
+            animationDuration: const Duration(seconds: 1),
+            toastDuration: const Duration(seconds: 2),
+          ).show(context);
+        }
 
         setState(() {
           _currentOrder = order;
         });
       }catch(e){
-        print(e.toString());
+        if (context.mounted){
+          MotionToast.error(
+            title:  const Text("Error taking order"),
+            description:  Text(e.toString()),
+            animationDuration: const Duration(seconds: 1),
+            toastDuration: const Duration(seconds: 2),
+          ).show(context);
+        }
       }
     }
   }
@@ -164,7 +215,7 @@ class _RiderHomeState extends State<RiderHome> {
                 leading: Icon(Icons.home, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Home',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()), );
+                  Get.offAll(() => const Home(), transition: Transition.rightToLeft);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -172,7 +223,7 @@ class _RiderHomeState extends State<RiderHome> {
                 leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Profile',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => RiderProfile(user: widget.user)), );
+                  Get.to(() => RiderProfile(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -180,7 +231,7 @@ class _RiderHomeState extends State<RiderHome> {
                 leading: Icon(Icons.history_edu_outlined, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Orders',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => RiderOrderHistory(user: widget.user)), );
+                  Get.to(() => RiderOrderHistory(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -189,146 +240,158 @@ class _RiderHomeState extends State<RiderHome> {
                 title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.SignOut();
-                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
-                },
-              ),
-              Divider(color: Theme.of(context).primaryColor, height: 1,),
-              ListTile(
-                leading: Icon(Icons.person_remove_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Delete Account',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
-                onTap: () async {
-                  await _auth.deleteAccount(widget.user!.usertype);
-                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
+                  Get.offAll(() => const Wrapper(), transition: Transition.fade);
                 },
               ),
             ],
           ),
         ),
       ),
-      body: Builder(
-        builder: (context) => SizedBox(
-          height: MediaQuery.of(context).size.height,
-          child: Column(
-            children: [
-              Stack(
-                children: [
-                  const SizedBox(
-                    height: 100,
-                    child: HeaderWidget(100, false, Icons.house_rounded),
-                  ),
-                  Container(
-                    height: 120,
-                    margin: const EdgeInsets.only(
-                      left: 30,
-                      right: 30,
-                      bottom: 15,
-                      top: 15,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      color: Colors.white,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.only(
-                        top: 15,
-                        left: 15,
-                        right: 15,
-                      ),
-                      child: Row(
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Balance',
-                                maxLines: 1,
-                                style: TextStyle(
-                                  fontFamily: 'Roboto',
-                                  color: Colors.black,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                _balance.toStringAsFixed(2),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontFamily: 'Roboto',
-                                  color: Colors.black,
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ],
+      body: SingleChildScrollView(
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                Stack(
+                  children: [
+                    AnimatedBuilder(
+                      animation: _animationController,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: _headerOffsetAnimation.value * 100,
+                          child: const SizedBox(
+                            height: 100,
+                            child: HeaderWidget(100, false, Icons.house_rounded),
                           ),
-                          Container(
-                            margin: const EdgeInsets.only(left: 15),
-                            decoration: ThemeHelper().buttonBoxDecoration(context),
-                            child: ElevatedButton(
-                              style: ThemeHelper().buttonStyle(),
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                                child: Text(
-                                  'Cash out'.toUpperCase(),
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                        );
+                      },
+                    ),
+                    AnimatedBuilder(
+                      animation: _animationController,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: _balanceOffsetAnimation.value * 100,
+                          child: Container(
+                            height: 120,
+                            margin: const EdgeInsets.only(
+                              left: 30,
+                              right: 30,
+                              bottom: 15,
+                              top: 15,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              color: Colors.white,
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.only(
+                                top: 15,
+                                left: 15,
+                                right: 15,
                               ),
-                              onPressed: () {
-                                // TODO: Implement cash out functionality
-                              },
+                              child: Row(
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Balance',
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          fontFamily: 'Roboto',
+                                          color: Colors.black,
+                                          fontSize: 30,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        _balance.toStringAsFixed(2),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontFamily: 'Roboto',
+                                          color: Colors.black,
+                                          fontSize: 40,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Container(
+                                    margin: const EdgeInsets.only(left: 15),
+                                    decoration: ThemeHelper().buttonBoxDecoration(context),
+                                    child: ElevatedButton(
+                                      style: ThemeHelper().buttonStyle(),
+                                      child: Padding(
+                                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                        child: Text(
+                                          'Cash out'.toUpperCase(),
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        // TODO: Implement cash out functionality
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ],
-                      ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Current Order',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                _currentOrder != null
+                    ? GestureDetector(
+                  onTap: () {
+                    Get.to(() => ViewOrderScreen(order: _currentOrder, onOrderStatusUpdated: () {
+                    setState(() {
+                    checkOrder();
+                    });
+                    },), transition: Transition.size, duration: const Duration(seconds: 1));
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      color: Colors.grey[200],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10),
+                        Text('Delivery Address: ${_currentOrder!.address}'),
+                        Text('Delivery Fee: RM${_currentOrder!.deliveryFee.toStringAsFixed(2)}'),
+                      ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Current Order',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                )
+                    : const SizedBox(),
+                const SizedBox(height: 20),
+                const Text(
+                  'Orders',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              _currentOrder != null
-                  ? GestureDetector(
-                    onTap: () => Navigator.push( context, MaterialPageRoute(builder: (context) => ViewOrderScreen(order: _currentOrder)),),
-                    child: Container(
-                      margin: const EdgeInsets.all(10),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        color: Colors.grey[200],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 10),
-                          Text('Delivery Address: ${_currentOrder!.address}'),
-                          Text('Delivery Fee: RM${_currentOrder!.deliveryFee.toStringAsFixed(2)}'),
-                        ],
-                      ),
-                    ),
-                  )
-                  : const SizedBox(),
-              const SizedBox(height: 20),
-              const Text(
-                'Orders',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
+                StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('Order')
                       .where('riderID', isEqualTo: null)
@@ -345,12 +408,15 @@ class _RiderHomeState extends State<RiderHome> {
                     final orders = snapshot.data!.docs;
 
                     return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
                       itemCount: orders.length,
                       itemBuilder: (context, index) {
                         final orderDoc = orders[index].data() as Map<String, dynamic>;
                         final OrderModel order = OrderModel.fromJson(orderDoc);
 
-                        if(order.riderID == null){
+
+                        if (order.riderID == null) {
                           return Container(
                             margin: const EdgeInsets.all(10),
                             padding: const EdgeInsets.all(20),
@@ -371,18 +437,19 @@ class _RiderHomeState extends State<RiderHome> {
                               ],
                             ),
                           );
-                        }else{
+                        } else {
                           return Container();
                         }
                       },
                     );
                   },
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
+
     );
   }
 }

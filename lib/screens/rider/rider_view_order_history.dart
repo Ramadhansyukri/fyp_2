@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/order_model.dart';
 
-class UserViewOrder extends StatefulWidget {
-  const UserViewOrder({Key? key, required this.order}) : super(key: key);
+class RiderViewOrder extends StatefulWidget {
+  const RiderViewOrder({Key? key, required this.order}) : super(key: key);
 
   final OrderModel? order;
 
   @override
-  State<UserViewOrder> createState() => _UserViewOrderState();
+  State<RiderViewOrder> createState() => _RiderViewOrderState();
 }
 
-class _UserViewOrderState extends State<UserViewOrder> {
+class _RiderViewOrderState extends State<RiderViewOrder> {
   late Future<DocumentSnapshot> _userFuture;
   late Future<DocumentSnapshot> _restaurantFuture;
   late Future<DocumentSnapshot> _riderFuture;

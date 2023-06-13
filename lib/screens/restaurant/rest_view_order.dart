@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:motion_toast/motion_toast.dart';
 import '../../models/order_model.dart';
 import '../../services/database.dart';
-import '../home_screen.dart';
 
 class RestViewOrder extends StatefulWidget {
   const RestViewOrder({Key? key, required this.order}) : super(key: key);
@@ -56,16 +55,22 @@ class _RestViewOrderState extends State<RestViewOrder> {
         // Refresh the UI to reflect the updated order status
         _orderFuture = _fetchOrder(widget.order!.orderID);
       });
-      Fluttertoast.showToast(
-        msg: 'Order Complete',
-        fontSize: 20.0,
-        backgroundColor: Colors.green.withOpacity(0.8),
-        textColor: Colors.white,
-      );
-      Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()),);
+      if (context.mounted){
+        MotionToast.success(
+          title:  const Text("Order Completed"),
+          description:  const Text("Order Status Updated"),
+          animationDuration: const Duration(seconds: 1),
+          toastDuration: const Duration(seconds: 2),
+        ).show(context);
+      }
     }).catchError((error) {
       // Handle the error if the update fails
-      print('Error updating order status: $error');
+      MotionToast.error(
+        title:  const Text("Error updating status"),
+        description:  Text(error.toString()),
+        animationDuration: const Duration(seconds: 1),
+        toastDuration: const Duration(seconds: 2),
+      ).show(context);
     });
   }
 
@@ -183,8 +188,7 @@ class _RestViewOrderState extends State<RestViewOrder> {
                         FutureBuilder<QuerySnapshot>(
                           future: itemDocs,
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
                               return const CircularProgressIndicator();
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
@@ -201,20 +205,44 @@ class _RestViewOrderState extends State<RestViewOrder> {
                               itemBuilder: (context, index) {
                                 final item = items[index];
 
-                                return ListTile(
-                                  title: Text(item['name']),
-                                  subtitle: Text(
-                                    'RM ${item['price'].toStringAsFixed(2)} x ${item['quantity']}',
-                                  ),
-                                  leading: CircleAvatar(
-                                    backgroundImage: NetworkImage(item['imageUrl']),
-                                  ),
-                                );
+                                if (item['instruction'] != "") {
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(item['name']),
+                                        subtitle: Text(
+                                          'RM ${item['price'].toStringAsFixed(2)} x ${item['quantity']}',
+                                        ),
+                                        leading: CircleAvatar(
+                                          backgroundImage: NetworkImage(item['imageUrl']),
+                                        ),
+                                      ),
+                                      ListTile(
+                                        title: const Text(
+                                          'Instruction:',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        subtitle: Text(item['instruction']),
+                                      ),
+                                    ],
+                                  );
+                                } else {
+                                  return ListTile(
+                                    title: Text(item['name']),
+                                    subtitle: Text(
+                                      'RM ${item['price'].toStringAsFixed(2)} x ${item['quantity']}',
+                                    ),
+                                    leading: CircleAvatar(
+                                      backgroundImage: NetworkImage(item['imageUrl']),
+                                    ),
+                                  );
+                                }
                               },
                             );
                           },
                         ),
-                        // Add more details here as needed
                       ],
                     ),
                   ),

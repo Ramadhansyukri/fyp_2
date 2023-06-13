@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:fyp_2/models/restaurant_model.dart';
 import 'package:fyp_2/models/user_models.dart';
 import 'package:fyp_2/services/database.dart';
+import 'package:motion_toast/motion_toast.dart';
+import 'package:get/get.dart';
 
+import '../../shared/theme_helper.dart';
 import 'cart_screen.dart';
 
 class ViewRestaurant extends StatefulWidget {
@@ -65,8 +67,8 @@ class _ViewRestaurantState extends State<ViewRestaurant> {
           actions: <Widget>[
             IconButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CartScreen(user: widget.user)));
-              },
+                Get.to(() => CartScreen(user: widget.user), transition: Transition.cupertino, duration: const Duration(seconds: 1));
+                },
               icon: const Icon(Icons.shopping_cart),
             ),
           ],
@@ -177,7 +179,7 @@ class _ViewRestaurantState extends State<ViewRestaurant> {
                                                   ),
                                                   const SizedBox(height: 8),
                                                   Text(
-                                                    showPrice,
+                                                    'RM$showPrice',
                                                     style: const TextStyle(
                                                       fontWeight: FontWeight.bold,
                                                     ),
@@ -186,36 +188,20 @@ class _ViewRestaurantState extends State<ViewRestaurant> {
                                               ),
                                             ),
                                             IconButton(
-                                              onPressed: () async {
-                                                try {
-                                                  await CartService(uid: widget.user!.uid).addToCart(
-                                                    document['menuID'],
-                                                    document['name'],
-                                                    document['price'],
-                                                    document['imageUrl'],
-                                                    restaurant!.uid,
-                                                    context,
-                                                  );
-                                                  Fluttertoast.showToast(
-                                                    msg: 'Successfully added to cart',
-                                                    toastLength: Toast.LENGTH_SHORT,
-                                                    gravity: ToastGravity.BOTTOM,
-                                                    fontSize: 16.0,
-                                                    backgroundColor: Colors.green.withOpacity(0.8),
-                                                    textColor: Colors.white,
-                                                  );
-                                                } catch (e) {
-                                                  Fluttertoast.showToast(
-                                                    msg: e.toString(),
-                                                    fontSize: 16.0,
-                                                    backgroundColor: Colors.redAccent.withOpacity(0.8),
-                                                    textColor: Colors.white,
-                                                  );
-                                                }
+                                              onPressed: () {
+                                                _showModalBottomSheet(
+                                                  context,
+                                                  document['menuID'],
+                                                  document['name'],
+                                                  document['desc'],
+                                                  document['price'],
+                                                  document['imageUrl'],
+                                                );
                                               },
                                               icon: const Icon(Icons.add_shopping_cart),
                                               color: Colors.green,
                                             ),
+
                                           ],
                                         ),
                                       );
@@ -238,5 +224,136 @@ class _ViewRestaurantState extends State<ViewRestaurant> {
     } else {
       return const Center(child: CircularProgressIndicator());
     }
+  }
+
+  void _showModalBottomSheet(BuildContext context, String foodID, String foodName, String foodDescription, double foodPrice, String foodImage) {
+    String? specialInstructions = '';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(30),
+        ),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.4,
+        maxChildSize: 0.9,
+        minChildSize: 0.32,
+        expand: false,
+        builder: (context, scrollController) {
+          return SingleChildScrollView(
+            controller: scrollController,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 200,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      image: DecorationImage(
+                        image: NetworkImage(foodImage),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    foodName,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    foodDescription,
+                    style: const TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'RM${foodPrice.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Special Instructions',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3, // Adjust the number of lines as needed
+                    onChanged: (value) {
+                      setState(() {
+                        specialInstructions = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: Container(
+                      decoration: ThemeHelper().buttonBoxDecoration(context),
+                      child: ElevatedButton(
+                        style: ThemeHelper().buttonStyle(),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(40, 10, 40, 10),
+                          child: Text(
+                            "Add to cart".toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        onPressed: () async {
+                          try {
+                            bool currentRest = false;
+                            currentRest = await CartService(uid: widget.user!.uid).addToCart(
+                              foodID,
+                              foodName,
+                              foodPrice,
+                              foodImage,
+                              restaurant!.uid,
+                              specialInstructions,
+                              context,
+                            );
+                            if(currentRest==true){
+                              if (context.mounted){
+                                MotionToast.success(
+                                  title:  const Text("Added to cart"),
+                                  description:  const Text("Successfully add item to cart"),
+                                  animationDuration: const Duration(seconds: 1),
+                                  toastDuration: const Duration(seconds: 2),
+                                ).show(context);
+                              }
+                            }
+                          } catch (e) {
+                            MotionToast.error(
+                              title:  const Text("Error adding to cart"),
+                              description:  Text(e.toString()),
+                              animationDuration: const Duration(seconds: 1),
+                              toastDuration: const Duration(seconds: 2),
+                            ).show(context);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }

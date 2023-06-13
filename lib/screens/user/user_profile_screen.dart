@@ -1,7 +1,9 @@
+import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/home_screen.dart';
 import 'package:fyp_2/screens/user/update_address.dart';
 import 'package:fyp_2/screens/wrapper.dart';
+import 'package:get/get.dart';
 
 import '../../models/user_models.dart';
 import '../../services/auth.dart';
@@ -10,28 +12,51 @@ import '../../widgets/header_widget.dart';
 import 'order_history.dart';
 
 class UserProfile extends StatefulWidget {
-  // const UserProfile({Key? key}) : super(key: key);
-
   final Users? user;
 
-  const UserProfile({Key? key,required this.user}) : super(key: key);
+  const UserProfile({Key? key, required this.user}) : super(key: key);
 
   @override
   State<UserProfile> createState() => _UserProfileState();
 }
 
-class _UserProfileState extends State<UserProfile> {
-
-  final double  _drawerIconSize = 24;
+class _UserProfileState extends State<UserProfile> with SingleTickerProviderStateMixin {
+  final double _drawerIconSize = 24;
   final double _drawerFontSize = 17;
 
   final AuthService _auth = AuthService();
   late String _userAddress = '';
 
+  late AnimationController _animationController;
+  late Animation<Offset> _headerOffsetAnimation;
+
   @override
   void initState() {
     super.initState();
     _fetchUserAddress();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _headerOffsetAnimation = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchUserAddress() async {
@@ -51,37 +76,43 @@ class _UserProfileState extends State<UserProfile> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Profile Page",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        title: const Text(
+          "Profile Page",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         elevation: 0.5,
         iconTheme: const IconThemeData(color: Colors.white),
-        flexibleSpace:Container(
+        flexibleSpace: Container(
           decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: <Color>[Theme.of(context).primaryColor, Theme.of(context).colorScheme.secondary,]
-              )
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: <Color>[
+                Theme.of(context).primaryColor,
+                Theme.of(context).colorScheme.secondary,
+              ],
+            ),
           ),
         ),
       ),
       drawer: Drawer(
         child: Container(
-          decoration:BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  stops: const [0.0, 1.0],
-                  colors: [
-                    Theme.of(context).primaryColor.withOpacity(0.2),
-                    Theme.of(context).colorScheme.secondary.withOpacity(0.5),
-                  ]
-              )
-          ) ,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: const [0.0, 1.0],
+              colors: [
+                Theme.of(context).primaryColor.withOpacity(0.2),
+                Theme.of(context).colorScheme.secondary.withOpacity(0.5),
+              ],
+            ),
+          ),
           child: ListView(
             children: [
               DrawerHeader(
@@ -105,7 +136,7 @@ class _UserProfileState extends State<UserProfile> {
                 leading: Icon(Icons.home, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Home',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()), );
+                  Get.offAll(() => const Home(), transition: Transition.rightToLeft);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -113,7 +144,7 @@ class _UserProfileState extends State<UserProfile> {
                 leading: Icon(Icons.history_edu_outlined, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Orders',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => UserOrderHistory(user: widget.user)), );
+                  Get.to(() => UserOrderHistory(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -121,7 +152,7 @@ class _UserProfileState extends State<UserProfile> {
                 leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
                 title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Navigator.push( context, MaterialPageRoute(builder: (context) => UserProfile(user: widget.user,)), );
+                  Get.to(() => UserProfile(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -130,16 +161,7 @@ class _UserProfileState extends State<UserProfile> {
                 title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () async {
                   await _auth.SignOut();
-                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
-                },
-              ),
-              Divider(color: Theme.of(context).primaryColor, height: 1,),
-              ListTile(
-                leading: Icon(Icons.person_remove_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Delete Account',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
-                onTap: () async {
-                  await _auth.deleteAccount(widget.user!.usertype);
-                  Navigator.pushReplacement( context, MaterialPageRoute(builder: (context) => const Wrapper()), );
+                  Get.offAll(() => const Wrapper(), transition: Transition.rightToLeftWithFade);
                 },
               ),
             ],
@@ -149,7 +171,18 @@ class _UserProfileState extends State<UserProfile> {
       body: SingleChildScrollView(
         child: Stack(
           children: [
-            const SizedBox(height: 100, child: HeaderWidget(100,false,Icons.house_rounded),),
+            AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                return Transform.translate(
+                  offset: _headerOffsetAnimation.value * 100,
+                  child: const SizedBox(
+                    height: 100,
+                    child: HeaderWidget(100, false, Icons.house_rounded),
+                  ),
+                );
+              },
+            ),
             Container(
               alignment: Alignment.center,
               margin: const EdgeInsets.fromLTRB(25, 10, 25, 10),
@@ -163,16 +196,36 @@ class _UserProfileState extends State<UserProfile> {
                       border: Border.all(width: 5, color: Colors.white),
                       color: Colors.white,
                       boxShadow: const [
-                        BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(5, 5),),
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 20,
+                          offset: Offset(5, 5),
+                        ),
                       ],
                     ),
-                    child: Icon(Icons.person, size: 80, color: Colors.grey.shade300,),
+                    child: Icon(
+                      Icons.person,
+                      size: 80,
+                      color: Colors.grey.shade300,
+                    ),
                   ),
-                  const SizedBox(height: 20,),
-                  Text("${widget.user?.name}", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),),
-                  const SizedBox(height: 20,),
-                  Text('${widget.user?.usertype}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                  const SizedBox(height: 10,),
+                  const SizedBox(height: 20),
+                  Text(
+                    "${widget.user?.name}",
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    '${widget.user?.usertype}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.all(10),
                     child: Column(
@@ -218,10 +271,10 @@ class _UserProfileState extends State<UserProfile> {
                                           trailing: IconButton(
                                             icon: const Icon(Icons.edit),
                                             onPressed: () {
-                                              Navigator.push( context, MaterialPageRoute(builder: (context) => AddressScreen(user: widget.user,updateAddress: updateAddress,)),);
+                                              Get.to(() => AddressScreen(user: widget.user,updateAddress: updateAddress,), transition: Transition.rightToLeftWithFade);
                                             },
                                           ),
-                                        ),
+                                        )
                                       ],
                                     ),
                                   ],
@@ -230,13 +283,58 @@ class _UserProfileState extends State<UserProfile> {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 20),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            children: <Widget>[
+                              const SizedBox(height: 20),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  // TODO: Add functionality for Edit Profile button
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange,
+                                  minimumSize: const Size(double.infinity, 50),
+                                ),
+                                icon: const Icon(Icons.edit),
+                                label: const Text('Edit Profile'),
+                              ),
+                              const SizedBox(height: 20),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  CoolAlert.show(
+                                      context: context,
+                                      type: CoolAlertType.confirm,
+                                      title: "Confirmation",
+                                      text: 'Are you sure you want to delete your account?',
+                                      confirmBtnText: 'Yes',
+                                      cancelBtnText: 'No',
+                                      confirmBtnColor: Colors.green,
+                                      onConfirmBtnTap: () {
+                                        _auth.deleteAccount(widget.user!.usertype);
+                                        Get.offAll(() => const Wrapper(), transition: Transition.fade);
+                                      }
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  minimumSize: const Size(double.infinity, 50),
+                                ),
+                                icon: const Icon(Icons.delete),
+                                label: const Text('Delete Account'),
+                              ),
+                            ],
+                          ),
+                        ),
 
-        ],
+                      ],
                     ),
-                  )
+                  ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),

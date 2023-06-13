@@ -68,14 +68,6 @@ class AuthService{
   Future SignOut() async {
     try{
       await _auth.signOut();
-      Fluttertoast.showToast(
-          msg: "Signed out successfully",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          fontSize: 20.0,
-          backgroundColor: Colors.green.withOpacity(0.8),
-          textColor: Colors.white
-      );
     }catch (e){
       Fluttertoast.showToast(
           msg: e.toString(),

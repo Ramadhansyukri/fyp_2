@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:fyp_2/screens/home_screen.dart';
+import 'package:motion_toast/motion_toast.dart';
 import '../../models/order_model.dart';
 import '../../services/database.dart';
 
 class ViewOrderScreen extends StatefulWidget {
-  const ViewOrderScreen({Key? key, required this.order}) : super(key: key);
-
   final OrderModel? order;
+  final Function() onOrderStatusUpdated;
+
+  const ViewOrderScreen({Key? key, this.order, required this.onOrderStatusUpdated}) : super(key: key);
 
   @override
   State<ViewOrderScreen> createState() => _ViewOrderScreenState();
@@ -87,17 +87,24 @@ class _ViewOrderScreenState extends State<ViewOrderScreen> {
       setState(() {
         // Refresh the UI to reflect the updated order status
         _orderFuture = _fetchOrder(widget.order!.orderID);
+        widget.onOrderStatusUpdated();
       });
-      Fluttertoast.showToast(
-        msg: 'Order Complete',
-        fontSize: 20.0,
-        backgroundColor: Colors.green.withOpacity(0.8),
-        textColor: Colors.white,
-      );
-      Navigator.push( context, MaterialPageRoute(builder: (context) => const Home()),);
+
+      if (context.mounted){
+        MotionToast.success(
+          title:  const Text("Order Completed"),
+          description:  const Text("Order Status Updated"),
+          animationDuration: const Duration(seconds: 1),
+          toastDuration: const Duration(seconds: 2),
+        ).show(context);
+      }
     }).catchError((error) {
-      // Handle the error if the update fails
-      print('Error updating order status: $error');
+      MotionToast.error(
+        title:  const Text("Error updating status"),
+        description:  Text(error.toString()),
+        animationDuration: const Duration(seconds: 1),
+        toastDuration: const Duration(seconds: 2),
+      ).show(context);
     });
   }
 
@@ -246,8 +253,7 @@ class _ViewOrderScreenState extends State<ViewOrderScreen> {
                         FutureBuilder<QuerySnapshot>(
                           future: itemDocs,
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
                               return const CircularProgressIndicator();
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
@@ -264,20 +270,44 @@ class _ViewOrderScreenState extends State<ViewOrderScreen> {
                               itemBuilder: (context, index) {
                                 final item = items[index];
 
-                                return ListTile(
-                                  title: Text(item['name']),
-                                  subtitle: Text(
-                                    'RM ${item['price'].toStringAsFixed(2)} x ${item['quantity']}',
-                                  ),
-                                  leading: CircleAvatar(
-                                    backgroundImage: NetworkImage(item['imageUrl']),
-                                  ),
-                                );
+                                if (item['instruction'] != "") {
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(item['name']),
+                                        subtitle: Text(
+                                          'RM ${item['price'].toStringAsFixed(2)} x ${item['quantity']}',
+                                        ),
+                                        leading: CircleAvatar(
+                                          backgroundImage: NetworkImage(item['imageUrl']),
+                                        ),
+                                      ),
+                                      ListTile(
+                                        title: const Text(
+                                          'Instruction:',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        subtitle: Text(item['instruction']),
+                                      ),
+                                    ],
+                                  );
+                                } else {
+                                  return ListTile(
+                                    title: Text(item['name']),
+                                    subtitle: Text(
+                                      'RM ${item['price'].toStringAsFixed(2)} x ${item['quantity']}',
+                                    ),
+                                    leading: CircleAvatar(
+                                      backgroundImage: NetworkImage(item['imageUrl']),
+                                    ),
+                                  );
+                                }
                               },
                             );
                           },
                         ),
-                        // Add more details here as needed
                       ],
                     ),
                   ),

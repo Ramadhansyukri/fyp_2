@@ -203,8 +203,7 @@ class _RestCompOrderState extends State<RestCompOrder> {
                         FutureBuilder<QuerySnapshot>(
                           future: itemDocs,
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
                               return const CircularProgressIndicator();
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
@@ -221,20 +220,44 @@ class _RestCompOrderState extends State<RestCompOrder> {
                               itemBuilder: (context, index) {
                                 final item = items[index];
 
-                                return ListTile(
-                                  title: Text(item['name']),
-                                  subtitle: Text(
-                                    'RM ${item['price'].toStringAsFixed(2)} x ${item['quantity']}',
-                                  ),
-                                  leading: CircleAvatar(
-                                    backgroundImage: NetworkImage(item['imageUrl']),
-                                  ),
-                                );
+                                if (item['instruction'] != "") {
+                                  return Column(
+                                    children: [
+                                      ListTile(
+                                        title: Text(item['name']),
+                                        subtitle: Text(
+                                          'RM ${item['price'].toStringAsFixed(2)} x ${item['quantity']}',
+                                        ),
+                                        leading: CircleAvatar(
+                                          backgroundImage: NetworkImage(item['imageUrl']),
+                                        ),
+                                      ),
+                                      ListTile(
+                                        title: const Text(
+                                          'Instruction:',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        subtitle: Text(item['instruction']),
+                                      ),
+                                    ],
+                                  );
+                                } else {
+                                  return ListTile(
+                                    title: Text(item['name']),
+                                    subtitle: Text(
+                                      'RM ${item['price'].toStringAsFixed(2)} x ${item['quantity']}',
+                                    ),
+                                    leading: CircleAvatar(
+                                      backgroundImage: NetworkImage(item['imageUrl']),
+                                    ),
+                                  );
+                                }
                               },
                             );
                           },
                         ),
-                        // Add more details here as needed
                       ],
                     ),
                   ),
