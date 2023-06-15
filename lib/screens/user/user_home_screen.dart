@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:fyp_2/screens/user/topup.dart';
 import 'package:fyp_2/screens/user/user_profile_screen.dart';
 import 'package:fyp_2/screens/user/view_restaurant_screen.dart';
@@ -359,21 +360,38 @@ class _UserHomeState extends State<UserHome> with SingleTickerProviderStateMixin
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             crossAxisAlignment: CrossAxisAlignment.center,
                                             children: [
-                                              const SizedBox(width: 16), // Adjust the spacing as needed
-                                              SizedBox(
-                                                width: 250,
-                                                child: Column(
-                                                  children: [
-                                                    Text('${document['name']}',
-                                                      style: const TextStyle(
-                                                          fontWeight: FontWeight.bold,
-                                                          fontSize: 20
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 3,),
-                                                    Text('${document['phone']}'),
-                                                  ],
+                                              Text('${document['name']}',
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20
                                                 ),
+                                              ),
+                                              const SizedBox(height: 3,),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  RatingBar.builder(
+                                                    initialRating: 3.5,
+                                                    minRating: 1,
+                                                    maxRating: 5,
+                                                    allowHalfRating: true,
+                                                    ignoreGestures: true,
+                                                    itemCount: 5,
+                                                    itemSize: 20,
+                                                    itemBuilder: (context, _) => const Icon(
+                                                      Icons.star,
+                                                      color: Colors.amber,
+                                                    ),
+                                                    onRatingUpdate: (rating) {},
+                                                  ),
+                                                  Text(
+                                                    '(40)',
+                                                    style: TextStyle(
+                                                      color: Colors.grey,
+                                                      fontSize: 14,
+                                                    ),
+                                                  ),
+                                                ],
                                               )
                                             ],
                                           ),
