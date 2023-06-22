@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:fyp_2/screens/restaurant/rest_view_order.dart';
 import 'package:fyp_2/screens/restaurant/restaurant_order_history.dart';
 import 'package:fyp_2/screens/restaurant/restaurant_profile_screen.dart';
@@ -87,6 +88,54 @@ class _RestaurantHomeState extends State<RestaurantHome> with SingleTickerProvid
         });
       }
     });
+  }
+
+  Future<Row> rating(String restaurantID) async {
+    final ratingSnapshot = await FirebaseFirestore.instance
+        .collection('restaurant')
+        .doc(restaurantID)
+        .collection('Ratings')
+        .get();
+
+    double sumRatings = 0;
+    int totalRatings = 0;
+
+    for (final ratingDoc in ratingSnapshot.docs) {
+      if (ratingDoc.exists) {
+        final rating = ratingDoc.data()['rating'] as double;
+        sumRatings += rating;
+        totalRatings++;
+      }
+    }
+
+    final double averageRatings = totalRatings > 0 ? sumRatings / totalRatings : 0;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        RatingBar.builder(
+          initialRating: averageRatings,
+          minRating: 1,
+          maxRating: 5,
+          allowHalfRating: true,
+          ignoreGestures: true,
+          itemCount: 5,
+          itemSize: 20,
+          itemBuilder: (context, _) => const Icon(
+            Icons.star,
+            color: Colors.amber,
+          ),
+          onRatingUpdate: (rating) {},
+        ),
+        Text(
+          '($totalRatings)',
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 14,
+          ),
+        )
+      ],
+    );
   }
 
   @override
@@ -303,6 +352,26 @@ class _RestaurantHomeState extends State<RestaurantHome> with SingleTickerProvid
                   ],
                 ),
                 const SizedBox(height: 10),
+                const Text(
+                  "Your Rating",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                FutureBuilder<Row>(
+                  future: rating(widget.user!.uid.toString()),
+                  builder: (BuildContext context, AsyncSnapshot<Row> ratingSnapshot) {
+                    if (ratingSnapshot.hasError) {
+                      return Text('Error: ${ratingSnapshot.error}');
+                    }
+                    if (!ratingSnapshot.hasData) {
+                      return const CircularProgressIndicator();
+                    }
+
+                    return ratingSnapshot.data!;
+                  },
+                ),
                 const Text(
                   "Incoming Order",
                   style: TextStyle(

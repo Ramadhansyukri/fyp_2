@@ -10,6 +10,7 @@ class OrderModel {
   final DateTime dateTime;
   String? riderID;
   String? status;
+  double? rating;
 
   OrderModel({
     required this.orderID,
@@ -21,6 +22,7 @@ class OrderModel {
     required this.dateTime,
     this.riderID,
     required this.status,
+    this.rating
   });
 
   @override
@@ -43,6 +45,7 @@ class OrderModel {
     'dateTime': dateTime,
     'riderID': riderID,
     'status': status,
+    'rating': rating
   };
 
   static OrderModel fromJson(Map<String, dynamic> data) {
@@ -56,6 +59,7 @@ class OrderModel {
       dateTime: (data['dateTime'] as Timestamp).toDate(),
       riderID: data['riderID'],
       status: data['status'],
+      rating: data['rating']
     );
   }
 }

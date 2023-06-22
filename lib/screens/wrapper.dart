@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/biometric_screen.dart';
 import 'package:fyp_2/screens/user_auth_screen.dart';
+import 'package:fyp_2/screens/verify_email_screen.dart';
 
 class Wrapper extends StatefulWidget {
   const Wrapper({Key? key}) : super(key: key);

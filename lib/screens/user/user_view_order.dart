@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:motion_toast/motion_toast.dart';
 import '../../models/order_model.dart';
 
 class UserViewOrder extends StatefulWidget {
@@ -16,6 +18,8 @@ class _UserViewOrderState extends State<UserViewOrder> {
   late Future<DocumentSnapshot> _restaurantFuture;
   late Future<DocumentSnapshot> _riderFuture;
   late Future<DocumentSnapshot> _orderFuture;
+  bool _isRated = false;
+  double _rating = 0.0;
 
   @override
   void initState() {
@@ -56,6 +60,102 @@ class _UserViewOrderState extends State<UserViewOrder> {
         .doc(orderID)
         .get();
     return orderDoc;
+  }
+
+  void _showRatingDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Rate Order'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Please rate your order'),
+              const SizedBox(height: 16),
+              RatingBar.builder(
+                initialRating: _rating,
+                minRating: 1,
+                direction: Axis.horizontal,
+                allowHalfRating: true,
+                itemCount: 5,
+                itemSize: 40,
+                unratedColor: Colors.amber.withAlpha(50),
+                itemBuilder: (context, _) => const Icon(
+                  Icons.star,
+                  color: Colors.amber,
+                ),
+                onRatingUpdate: (rating) {
+                  setState(() {
+                    _rating = rating;
+                  });
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _submitRating(widget.order!.orderID);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _submitRating(String orderId) {
+    if (_isRated) {
+      // Order has already been rated, disable rating feature
+      return;
+    }
+
+    // Update the rating in Firestore
+    FirebaseFirestore.instance
+        .collection('Order')
+        .doc(orderId)
+        .update({
+      'rating': _rating,
+    })
+        .then((_) {
+      // Rating saved successfully
+      setState(() {
+        _isRated = true; // Disable rating feature
+      });
+      MotionToast.success(
+        title: const Text("Rating submitted"),
+        description: const Text("Rating saved"),
+        animationDuration: const Duration(seconds: 1),
+        toastDuration: const Duration(seconds: 2),
+      ).show(context);
+
+      // Add rating to restaurant collection
+      String restaurantId = widget.order!.restID;
+      FirebaseFirestore.instance
+          .collection('restaurant')
+          .doc(restaurantId)
+          .collection('Ratings')
+          .doc(orderId)
+          .set({'rating': _rating});
+    })
+        .catchError((error) {
+      // Error saving rating
+      MotionToast.error(
+        title: const Text("Error rating order"),
+        description: Text(error.toString()),
+        animationDuration: const Duration(seconds: 1),
+        toastDuration: const Duration(seconds: 2),
+      ).show(context);
+    });
   }
 
   @override
@@ -299,6 +399,14 @@ class _UserViewOrderState extends State<UserViewOrder> {
                             ],
                           ),
                         ),
+                      ),
+                      ElevatedButton(
+                        onPressed: orderDoc['rating'] == null ? _showRatingDialog : null,
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: orderDoc['rating'] == null ? Colors.pink[900] : Colors.grey,
+                        ),
+                        child: const Text('Rate'),
                       ),
                     ],
                   ),

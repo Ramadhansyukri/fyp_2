@@ -27,7 +27,7 @@ class UserDatabaseService{
       phone: phoneNo,
       usertype: usertype,
       address: address,
-      balance: balance
+      balance: balance,
     );
 
     if(usertype == 'Customer'){

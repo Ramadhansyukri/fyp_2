@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/user/norider_view_order.dart';
-import 'package:fyp_2/screens/user/user_profile_screen.dart';
+import 'package:fyp_2/screens/user/user_setting.dart';
 import 'package:fyp_2/screens/user/user_view_order.dart';
 import 'package:get/get.dart';
 
@@ -129,10 +129,10 @@ class _UserOrderHistoryState extends State<UserOrderHistory> with SingleTickerPr
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
               ListTile(
-                leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                leading: Icon(Icons.settings, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Settings',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Get.to(() => UserProfile(user: widget.user), transition: Transition.rightToLeftWithFade);
+                  Get.to(() => UserSetting(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),

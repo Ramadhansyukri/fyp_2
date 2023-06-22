@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:fyp_2/screens/user/topup.dart';
-import 'package:fyp_2/screens/user/user_profile_screen.dart';
+import 'package:fyp_2/screens/user/user_setting.dart';
 import 'package:fyp_2/screens/user/view_restaurant_screen.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 import 'package:fyp_2/services/auth.dart';
@@ -90,6 +90,54 @@ class _UserHomeState extends State<UserHome> with SingleTickerProviderStateMixin
     });
   }
 
+  Future<Row> rating(String restaurantID) async {
+    final ratingSnapshot = await db
+        .collection('restaurant')
+        .doc(restaurantID)
+        .collection('Ratings')
+        .get();
+
+    double sumRatings = 0;
+    int totalRatings = 0;
+
+    for (final ratingDoc in ratingSnapshot.docs) {
+      if (ratingDoc.exists) {
+        final rating = ratingDoc.data()['rating'] as double;
+        sumRatings += rating;
+        totalRatings++;
+      }
+    }
+
+    final double averageRatings = totalRatings > 0 ? sumRatings / totalRatings : 0;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        RatingBar.builder(
+          initialRating: averageRatings,
+          minRating: 1,
+          maxRating: 5,
+          allowHalfRating: true,
+          ignoreGestures: true,
+          itemCount: 5,
+          itemSize: 20,
+          itemBuilder: (context, _) => const Icon(
+            Icons.star,
+            color: Colors.amber,
+          ),
+          onRatingUpdate: (rating) {},
+        ),
+        Text(
+          '($totalRatings)',
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 14,
+          ),
+        )
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,17 +167,17 @@ class _UserHomeState extends State<UserHome> with SingleTickerProviderStateMixin
       ),
       drawer: Drawer(
         child: Container(
-          decoration:BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  stops: const [0.0, 1.0],
-                  colors: [
-                    Theme.of(context).primaryColor.withOpacity(0.2),
-                    Theme.of(context).colorScheme.secondary.withOpacity(0.5),
-                  ]
-              )
-          ) ,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: const [0.0, 1.0],
+              colors: [
+                Theme.of(context).primaryColor.withOpacity(0.2),
+                Theme.of(context).colorScheme.secondary.withOpacity(0.5),
+              ],
+            ),
+          ),
           child: ListView(
             children: [
               DrawerHeader(
@@ -154,7 +202,7 @@ class _UserHomeState extends State<UserHome> with SingleTickerProviderStateMixin
                 title: Text('Home',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
                   Get.offAll(() => const Home(), transition: Transition.rightToLeft);
-                  },
+                },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
               ListTile(
@@ -166,10 +214,10 @@ class _UserHomeState extends State<UserHome> with SingleTickerProviderStateMixin
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
               ListTile(
-                leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                leading: Icon(Icons.settings, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Settings',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Get.to(() => UserProfile(user: widget.user), transition: Transition.rightToLeftWithFade);
+                  Get.to(() => UserSetting(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -299,8 +347,8 @@ class _UserHomeState extends State<UserHome> with SingleTickerProviderStateMixin
                 ),
                 const SizedBox(height: 20,),
                 Expanded(
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: db.collection('restaurant').snapshots(),
+                  child: FutureBuilder<QuerySnapshot>(
+                    future: db.collection('restaurant').get(),
                     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                       if (snapshot.hasError) {
                         return Text('Error: ${snapshot.error}');
@@ -308,40 +356,53 @@ class _UserHomeState extends State<UserHome> with SingleTickerProviderStateMixin
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const CircularProgressIndicator();
                       }
-                      if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                         return const Text('No data available');
                       }
-                      else{
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: snapshot.data!.docs.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final document = snapshot.data!.docs[index];
-                            final restaurantID = document.id;
-                            return GestureDetector(
-                              onTap: (){
-                                Get.to(() => ViewRestaurant(restID: restaurantID, user: widget.user,), transition: Transition.size, duration: const Duration(seconds: 1));
+
+                      final restaurantDocs = snapshot.data!.docs;
+
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: restaurantDocs.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final document = restaurantDocs[index];
+                          final restaurantID = document.id;
+
+                          return FutureBuilder<Row>(
+                            future: rating(restaurantID),
+                            builder: (BuildContext context, AsyncSnapshot<Row> ratingSnapshot) {
+                              if (ratingSnapshot.hasError) {
+                                return Text('Error: ${ratingSnapshot.error}');
+                              }
+                              if (!ratingSnapshot.hasData) {
+                                return const CircularProgressIndicator();
+                              }
+
+                              return GestureDetector(
+                                onTap: () {
+                                  Get.to(() => ViewRestaurant(restID: restaurantID, user: widget.user,), transition: Transition.size, duration: const Duration(seconds: 1));
                                 },
-                              child: Container(
-                                height: 200,
-                                margin: const EdgeInsets.all(15),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(30),
-                                  color: Colors.white,
-                                ),
-                                child: Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(30),
-                                      child: Image.network(
-                                        '${document['imageUrl']}',
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                        height: double.infinity,
+                                child: Container(
+                                  height: 200,
+                                  margin: const EdgeInsets.all(15),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(30),
+                                    color: Colors.white,
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(30),
+                                        child: Image.network(
+                                          '${document['imageUrl']}',
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                        ),
                                       ),
-                                    ),
-                                    Positioned(
+                                      Positioned(
                                         left: 0,
                                         bottom: 0,
                                         right: 0,
@@ -360,50 +421,27 @@ class _UserHomeState extends State<UserHome> with SingleTickerProviderStateMixin
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             crossAxisAlignment: CrossAxisAlignment.center,
                                             children: [
-                                              Text('${document['name']}',
+                                              Text(
+                                                '${document['name']}',
                                                 style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 20
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20,
                                                 ),
                                               ),
                                               const SizedBox(height: 3,),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  RatingBar.builder(
-                                                    initialRating: 3.5,
-                                                    minRating: 1,
-                                                    maxRating: 5,
-                                                    allowHalfRating: true,
-                                                    ignoreGestures: true,
-                                                    itemCount: 5,
-                                                    itemSize: 20,
-                                                    itemBuilder: (context, _) => const Icon(
-                                                      Icons.star,
-                                                      color: Colors.amber,
-                                                    ),
-                                                    onRatingUpdate: (rating) {},
-                                                  ),
-                                                  Text(
-                                                    '(40)',
-                                                    style: TextStyle(
-                                                      color: Colors.grey,
-                                                      fontSize: 14,
-                                                    ),
-                                                  ),
-                                                ],
-                                              )
+                                              ratingSnapshot.data!,
                                             ],
                                           ),
-                                        )
-                                    ),
-                                  ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                        );
-                      }
+                              );
+                            },
+                          );
+                        },
+                      );
                     },
                   ),
                 ),
