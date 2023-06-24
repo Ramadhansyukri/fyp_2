@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cool_alert/cool_alert.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:fyp_2/screens/user/topup.dart';
@@ -136,6 +140,43 @@ class _UserHomeState extends State<UserHome> with SingleTickerProviderStateMixin
         )
       ],
     );
+  }
+
+  void checkPinIsNull() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final userSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .get();
+
+    final pinIsNull = userSnapshot.data()?['PIN'] == null;
+
+    if (pinIsNull) {
+      final completer = Completer<bool>();
+
+      CoolAlert.show(
+        context: context,
+        type: CoolAlertType.confirm,
+        title: "PIN needed",
+        text: 'Please set your PIN to use this feature',
+        confirmBtnText: 'Yes',
+        cancelBtnText: 'No',
+        confirmBtnColor: Colors.green,
+        onConfirmBtnTap: () {
+          completer.complete(true);
+        },
+        onCancelBtnTap: () {
+          completer.complete(false);
+        },
+      );
+
+      final shouldNavigate = await completer.future;
+      if (shouldNavigate) {
+        Get.to(() => UserSetting(user: widget.user), transition: Transition.rightToLeftWithFade);
+      }
+    } else {
+      Get.to(() => TopUpScreen(user: widget.user), transition: Transition.downToUp, duration: const Duration(seconds: 1));
+    }
   }
 
   @override
@@ -301,6 +342,7 @@ class _UserHomeState extends State<UserHome> with SingleTickerProviderStateMixin
                                     decoration: ThemeHelper().buttonBoxDecoration(context),
                                     child: ElevatedButton(
                                       style: ThemeHelper().buttonStyle(),
+                                      onPressed: checkPinIsNull,
                                       child: Padding(
                                         padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
                                         child: Text(
@@ -312,9 +354,6 @@ class _UserHomeState extends State<UserHome> with SingleTickerProviderStateMixin
                                           ),
                                         ),
                                       ),
-                                      onPressed: () {
-                                        Get.to(()=> TopUpScreen(user: widget.user,), transition: Transition.downToUp, duration: const Duration(seconds: 1));
-                                      },
                                     ),
                                   )
                                 ],

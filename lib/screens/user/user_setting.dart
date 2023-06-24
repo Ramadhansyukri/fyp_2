@@ -1,15 +1,19 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:fyp_2/screens/home_screen.dart';
 import 'package:fyp_2/screens/user/user_profile_screen.dart';
-import 'package:fyp_2/screens/wrapper.dart';
 import 'package:get/get.dart';
-import 'package:flutter_screen_lock/flutter_screen_lock.dart';
-import 'package:bcrypt/bcrypt.dart';
+import 'package:passcode_screen/circle.dart';
+import 'package:passcode_screen/keyboard.dart';
+import 'package:passcode_screen/passcode_screen.dart';
+import 'package:bcrypt/bcrypt.dart' as encrypt;
 
 import '../../models/user_models.dart';
 import '../../services/auth.dart';
 import '../../widgets/header_widget.dart';
+import '../home_screen.dart';
+import '../wrapper.dart';
 import 'order_history.dart';
 
 class UserSetting extends StatefulWidget {
@@ -33,6 +37,17 @@ class _UserSettingState extends State<UserSetting>
 
   late Stream<DocumentSnapshot<Map<String, dynamic>>> _userStream;
   late bool _isPinEnabled;
+
+  final StreamController<bool> _verificationNotifier = StreamController<bool>.broadcast();
+
+  /*Example for checking
+  _onPasscodeEntered(String enteredPasscode) async {
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(widget.user!.uid);
+    final userData = await userDoc.get();
+    final storedPin = userData.get('PIN') as String;
+    final bool isPinValid = encrypt.BCrypt.checkpw(enteredPasscode, storedPin);
+    _verificationNotifier.add(isPinValid);
+  }*/
 
   @override
   void initState() {
@@ -65,32 +80,8 @@ class _UserSettingState extends State<UserSetting>
   @override
   void dispose() {
     _animationController.dispose();
+    _verificationNotifier.close();
     super.dispose();
-  }
-
-  Future<void> _setPin() async {
-    final controller = InputController();
-    await screenLockCreate(
-      context: context,
-      inputController: controller,
-      onConfirmed: (matchedText) async {
-        final userDoc = FirebaseFirestore.instance.collection('users').doc(widget.user!.uid);
-
-        final String hashedPin = BCrypt.hashpw(matchedText, BCrypt.gensalt());
-
-        await userDoc.update({'PIN': hashedPin});
-        setState(() {
-          _isPinEnabled = true;
-        });
-        Get.back();
-      },
-      footer: TextButton(
-        onPressed: () {
-          controller.unsetConfirmed();
-        },
-        child: const Text('Reset input'),
-      ),
-    );
   }
 
   @override
@@ -302,63 +293,28 @@ class _UserSettingState extends State<UserSetting>
                               value: _isPinEnabled,
                               onChanged: (value) async {
                                 if (value) {
-                                  final controller = InputController();
-                                  await screenLockCreate(
-                                    context: context,
-                                    inputController: controller,
-                                    onConfirmed: (matchedText) async {
-                                      final userDoc = FirebaseFirestore.instance.collection('users').doc(widget.user!.uid);
-                                      final String hashedPin = BCrypt.hashpw(matchedText, BCrypt.gensalt());
-                                      await userDoc.update({'PIN': hashedPin});
-                                      setState(() {
-                                        _isPinEnabled = true;
-                                      });
-                                      Get.back();
-                                    },
-                                    footer: TextButton(
-                                      onPressed: () {
-                                        controller.unsetConfirmed();
-                                      },
-                                      child: const Text('Reset input'),
+                                  _setPIN(
+                                    context,
+                                    opaque: false,
+                                    cancelButton: const Text(
+                                      'Cancel',
+                                      style: TextStyle(fontSize: 16, color: Colors.white),
+                                      semanticsLabel: 'Cancel',
                                     ),
                                   );
                                 } else {
-                                  final controller = InputController();
-                                  await screenLockCreate(
-                                    context: context,
-                                    inputController: controller,
-                                    onConfirmed: (matchedText) async {
-                                      final userDoc = FirebaseFirestore.instance.collection('users').doc(widget.user!.uid);
-                                      final userData = await userDoc.get();
-                                      final storedPin = userData.get('PIN') as String;
-                                      final bool isPinValid = BCrypt.checkpw(matchedText, storedPin);
-                                      if (isPinValid) {
-                                        await userDoc.update({'PIN': null});
-                                        setState(() {
-                                          _isPinEnabled = false;
-                                        });
-                                        Get.back();
-                                      } else {
-                                        // Show error message or perform appropriate actions
-                                      }
-                                    },
-                                    footer: TextButton(
-                                      onPressed: () {
-                                        controller.unsetConfirmed();
-                                      },
-                                      child: const Text('Reset input'),
+                                  _removePIN(
+                                    context,
+                                    opaque: false,
+                                    cancelButton: const Text(
+                                      'Cancel',
+                                      style: TextStyle(fontSize: 16, color: Colors.white),
+                                      semanticsLabel: 'Cancel',
                                     ),
                                   );
                                 }
                               },
                             ),
-                            if (_isPinEnabled)
-                              ListTile(
-                                title: const Text('Change PIN'),
-                                onTap: () {
-                                  _setPin();
-                                },
-                              ),
                           ],
                         );
                       },
@@ -371,5 +327,108 @@ class _UserSettingState extends State<UserSetting>
         ),
       ),
     );
+  }
+  _setPIN(
+      BuildContext context, {
+        required bool opaque,
+        CircleUIConfig? circleUIConfig,
+        KeyboardUIConfig? keyboardUIConfig,
+        required Widget cancelButton,
+        List<String>? digits,
+      }) {
+    Navigator.push(
+        context,
+        PageRouteBuilder(
+          opaque: opaque,
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              PasscodeScreen(
+                title: const Text(
+                  'Enter App Passcode',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white, fontSize: 28),
+                ),
+                circleUIConfig: circleUIConfig,
+                keyboardUIConfig: keyboardUIConfig,
+                passwordEnteredCallback: _setPasscode,
+                cancelButton: cancelButton,
+                deleteButton: const Text(
+                  'Delete',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  semanticsLabel: 'Delete',
+                ),
+                shouldTriggerVerification: _verificationNotifier.stream,
+                backgroundColor: Colors.black.withOpacity(0.8),
+                cancelCallback: _onPasscodeCancelled,
+                digits: digits,
+                passwordDigits: 6,
+              ),
+        ));
+  }
+
+  _removePIN(
+      BuildContext context, {
+        required bool opaque,
+        CircleUIConfig? circleUIConfig,
+        KeyboardUIConfig? keyboardUIConfig,
+        required Widget cancelButton,
+        List<String>? digits,
+      }) {
+    Navigator.push(
+        context,
+        PageRouteBuilder(
+          opaque: opaque,
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              PasscodeScreen(
+                title: const Text(
+                  'Enter App Passcode',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white, fontSize: 28),
+                ),
+                circleUIConfig: circleUIConfig,
+                keyboardUIConfig: keyboardUIConfig,
+                passwordEnteredCallback: _onPasscodeEntered,
+                cancelButton: cancelButton,
+                deleteButton: const Text(
+                  'Delete',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  semanticsLabel: 'Delete',
+                ),
+                shouldTriggerVerification: _verificationNotifier.stream,
+                backgroundColor: Colors.black.withOpacity(0.8),
+                cancelCallback: _onPasscodeCancelled,
+                digits: digits,
+                passwordDigits: 6,
+              ),
+        ));
+  }
+
+  _onPasscodeEntered(String enteredPasscode) async {
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(widget.user!.uid);
+    final userData = await userDoc.get();
+    final storedPin = userData.get('PIN') as String;
+    final bool isPinValid = encrypt.BCrypt.checkpw(enteredPasscode, storedPin);
+    _verificationNotifier.add(isPinValid);
+    if (isPinValid) {
+      await userDoc.update({'PIN': null});
+      setState(() {
+        _isPinEnabled = false;
+      });
+    }
+  }
+
+  _onPasscodeCancelled() {
+    Navigator.maybePop(context);
+  }
+
+  _setPasscode(String enteredPasscode) async {
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(widget.user!.uid);
+
+    final String hashedPin = encrypt.BCrypt.hashpw(enteredPasscode, encrypt.BCrypt.gensalt());
+
+    await userDoc.update({'PIN': hashedPin});
+    setState(() {
+      _isPinEnabled = true;
+    });
+    Get.back();
   }
 }
