@@ -1,9 +1,9 @@
 class Users {
 
   final String? uid;
-  final String name;
+  String name;
   final String email;
-  final String phone;
+  String phone;
   final String usertype;
   final String address;
   final double balance;

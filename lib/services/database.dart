@@ -96,7 +96,7 @@ class UserDatabaseService{
 
   Future deductUserBalance(double amount) async {
     final userRef = userdata.doc(uid);
-    await userRef.update({'balance': amount});
+    await userRef.update({'balance': FieldValue.increment(-amount)});
   }
 
   Future<double> getUserBalance() async {

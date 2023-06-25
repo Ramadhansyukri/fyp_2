@@ -151,7 +151,6 @@ class _TopUpScreenState extends State<TopUpScreen> {
     final result = await _createPaymentIntent();
     final clientSecret = await result['client_secret'];
 
-    debugPrint(result.toString());
     try {
       await stripe_package.Stripe.instance.confirmPayment(
         paymentIntentClientSecret: clientSecret,

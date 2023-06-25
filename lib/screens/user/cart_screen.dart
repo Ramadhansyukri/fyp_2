@@ -380,8 +380,7 @@ class _CartScreenState extends State<CartScreen> {
       return;
     }
 
-    double newBalance = userBalance - totalAmount;
-    await UserDatabaseService(uid: widget.user!.uid.toString()).deductUserBalance(newBalance);
+    await UserDatabaseService(uid: widget.user!.uid.toString()).deductUserBalance(totalAmount);
 
     await OrderDatabaseService().createOrder(widget.user!.uid.toString(), _cartItems[0].restID, _deliveryFee, totalAmount, _userAddress);
 

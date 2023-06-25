@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../models/user_models.dart';
 import '../../services/auth.dart';
 import '../../widgets/header_widget.dart';
+import '../edit_profile_screen.dart';
 
 class RestaurantProfile extends StatefulWidget {
   final Users? user;
@@ -49,6 +50,13 @@ class _RestaurantProfileState extends State<RestaurantProfile> with SingleTicker
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  void updateProfile(String username, String phone){
+    setState(() {
+      widget.user!.name = username;
+      widget.user!.phone = phone;
+    });
   }
 
   @override
@@ -190,7 +198,7 @@ class _RestaurantProfileState extends State<RestaurantProfile> with SingleTicker
                               const SizedBox(height: 20),
                               ElevatedButton.icon(
                                 onPressed: () {
-                                  // TODO: Add functionality for Edit Profile button
+                                  Get.to(() => EditProfile(user: widget.user, updateProfile: updateProfile,), transition: Transition.rightToLeftWithFade);
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.orange,

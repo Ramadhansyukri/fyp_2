@@ -17,7 +17,7 @@ import '../../services/auth.dart';
 import '../../shared/theme_helper.dart';
 import '../../widgets/header_widget.dart';
 import '../home_screen.dart';
-import '../user/user_setting.dart';
+import '../restaurant/rest_cashout_screen.dart';
 import '../wrapper.dart';
 
 class RiderHome extends StatefulWidget {
@@ -188,10 +188,10 @@ class _RiderHomeState extends State<RiderHome> with SingleTickerProviderStateMix
 
       final shouldNavigate = await completer.future;
       if (shouldNavigate) {
-        Get.to(() => UserSetting(user: widget.user), transition: Transition.rightToLeftWithFade);
+        Get.to(() => RiderSetting(user: widget.user), transition: Transition.rightToLeftWithFade);
       }
     } else {
-
+      Get.to(() => RestCashOut(user: widget.user), transition: Transition.rightToLeftWithFade);
     }
   }
 
@@ -365,6 +365,7 @@ class _RiderHomeState extends State<RiderHome> with SingleTickerProviderStateMix
                                     decoration: ThemeHelper().buttonBoxDecoration(context),
                                     child: ElevatedButton(
                                       style: ThemeHelper().buttonStyle(),
+                                      onPressed: checkPinIsNull,
                                       child: Padding(
                                         padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
                                         child: Text(
@@ -376,9 +377,6 @@ class _RiderHomeState extends State<RiderHome> with SingleTickerProviderStateMix
                                           ),
                                         ),
                                       ),
-                                      onPressed: () {
-                                        // TODO: Implement cash out functionality
-                                      },
                                     ),
                                   ),
                                 ],

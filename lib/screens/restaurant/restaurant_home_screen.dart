@@ -5,6 +5,7 @@ import 'package:cool_alert/cool_alert.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:fyp_2/screens/restaurant/rest_cashout_screen.dart';
 import 'package:fyp_2/screens/restaurant/rest_view_order.dart';
 import 'package:fyp_2/screens/restaurant/restaurant_order_history.dart';
 import 'package:fyp_2/screens/restaurant/restaurant_setting.dart';
@@ -18,7 +19,6 @@ import '../../services/auth.dart';
 import '../../shared/theme_helper.dart';
 import '../../widgets/header_widget.dart';
 import '../home_screen.dart';
-import '../user/user_setting.dart';
 import 'add_menu_screen.dart';
 
 class RestaurantHome extends StatefulWidget {
@@ -173,10 +173,10 @@ class _RestaurantHomeState extends State<RestaurantHome> with SingleTickerProvid
 
       final shouldNavigate = await completer.future;
       if (shouldNavigate) {
-        Get.to(() => UserSetting(user: widget.user), transition: Transition.rightToLeftWithFade);
+        Get.to(() => RestSetting(user: widget.user), transition: Transition.rightToLeftWithFade);
       }
     } else {
-
+      Get.to(() => RestCashOut(user: widget.user), transition: Transition.rightToLeftWithFade);
     }
   }
 

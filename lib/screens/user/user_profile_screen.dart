@@ -8,6 +8,7 @@ import '../../models/user_models.dart';
 import '../../services/auth.dart';
 import '../../services/database.dart';
 import '../../widgets/header_widget.dart';
+import '../edit_profile_screen.dart';
 
 class UserProfile extends StatefulWidget {
   final Users? user;
@@ -67,6 +68,13 @@ class _UserProfileState extends State<UserProfile> with SingleTickerProviderStat
   void updateAddress(String newAddress) {
     setState(() {
       _userAddress = newAddress;
+    });
+  }
+
+  void updateProfile(String username, String phone){
+    setState(() {
+      widget.user!.name = username;
+      widget.user!.phone = phone;
     });
   }
 
@@ -220,7 +228,7 @@ class _UserProfileState extends State<UserProfile> with SingleTickerProviderStat
                               const SizedBox(height: 20),
                               ElevatedButton.icon(
                                 onPressed: () {
-                                  // TODO: Add functionality for Edit Profile button
+                                  Get.to(() => EditProfile(user: widget.user, updateProfile: updateProfile,), transition: Transition.rightToLeftWithFade);
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.orange,
