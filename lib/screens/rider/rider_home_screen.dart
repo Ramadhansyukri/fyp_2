@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cool_alert/cool_alert.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/rider/rider_order_history.dart';
-import 'package:fyp_2/screens/rider/rider_profile_screen.dart';
+import 'package:fyp_2/screens/rider/rider_setting.dart';
 import 'package:fyp_2/screens/rider/view_order.dart';
 import 'package:fyp_2/services/database.dart';
 import 'package:get/get.dart';
@@ -13,6 +17,7 @@ import '../../services/auth.dart';
 import '../../shared/theme_helper.dart';
 import '../../widgets/header_widget.dart';
 import '../home_screen.dart';
+import '../user/user_setting.dart';
 import '../wrapper.dart';
 
 class RiderHome extends StatefulWidget {
@@ -153,6 +158,43 @@ class _RiderHomeState extends State<RiderHome> with SingleTickerProviderStateMix
     }
   }
 
+  void checkPinIsNull() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final userSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .get();
+
+    final pinIsNull = userSnapshot.data()?['PIN'] == null;
+
+    if (pinIsNull) {
+      final completer = Completer<bool>();
+
+      CoolAlert.show(
+        context: context,
+        type: CoolAlertType.confirm,
+        title: "PIN needed",
+        text: 'Please set your PIN to use this feature',
+        confirmBtnText: 'Yes',
+        cancelBtnText: 'No',
+        confirmBtnColor: Colors.green,
+        onConfirmBtnTap: () {
+          completer.complete(true);
+        },
+        onCancelBtnTap: () {
+          completer.complete(false);
+        },
+      );
+
+      final shouldNavigate = await completer.future;
+      if (shouldNavigate) {
+        Get.to(() => UserSetting(user: widget.user), transition: Transition.rightToLeftWithFade);
+      }
+    } else {
+
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -220,10 +262,10 @@ class _RiderHomeState extends State<RiderHome> with SingleTickerProviderStateMix
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
               ListTile(
-                leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Profile',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                leading: Icon(Icons.settings, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Settings',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Get.to(() => RiderProfile(user: widget.user), transition: Transition.rightToLeftWithFade);
+                  Get.to(() => RiderSetting(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),

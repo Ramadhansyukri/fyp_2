@@ -43,16 +43,12 @@ class _RestViewOrderState extends State<RestViewOrder> {
   void _updateOrderStatus() {
     final orderDocRef = FirebaseFirestore.instance.collection('Order').doc(widget.order!.orderID);
 
-    // Update the order status to 'Ready'
     orderDocRef.update({'status': 'Ready'}).then((_) async {
-      // Calculate subtotal (total - delivery fee)
       double subtotal = widget.order!.total - widget.order!.deliveryFee;
 
-      // Add balance to the user based on the subtotal
       await UserDatabaseService(uid: widget.order!.restID).addUserBalance(subtotal);
 
       setState(() {
-        // Refresh the UI to reflect the updated order status
         _orderFuture = _fetchOrder(widget.order!.orderID);
       });
       if (context.mounted){
@@ -64,7 +60,6 @@ class _RestViewOrderState extends State<RestViewOrder> {
         ).show(context);
       }
     }).catchError((error) {
-      // Handle the error if the update fails
       MotionToast.error(
         title:  const Text("Error updating status"),
         description:  Text(error.toString()),

@@ -1,15 +1,11 @@
 import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
-import 'package:fyp_2/screens/home_screen.dart';
-import 'package:fyp_2/screens/restaurant/restaurant_order_history.dart';
-import 'package:fyp_2/screens/restaurant/view_menu.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 import 'package:get/get.dart';
 
 import '../../models/user_models.dart';
 import '../../services/auth.dart';
 import '../../widgets/header_widget.dart';
-import 'add_menu_screen.dart';
 
 class RestaurantProfile extends StatefulWidget {
   final Users? user;
@@ -21,8 +17,6 @@ class RestaurantProfile extends StatefulWidget {
 }
 
 class _RestaurantProfileState extends State<RestaurantProfile> with SingleTickerProviderStateMixin {
-  final double _drawerIconSize = 24;
-  final double _drawerFontSize = 17;
 
   final AuthService _auth = AuthService();
 
@@ -80,93 +74,6 @@ class _RestaurantProfileState extends State<RestaurantProfile> with SingleTicker
                 Theme.of(context).colorScheme.secondary,
               ],
             ),
-          ),
-        ),
-      ),
-      drawer: Drawer(
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              stops: const [0.0, 1.0],
-              colors: [
-                Theme.of(context).primaryColor.withOpacity(0.2),
-                Theme.of(context).colorScheme.secondary.withOpacity(0.5),
-              ],
-            ),
-          ),
-          child: ListView(
-            children: [
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    stops: const [0.0, 1.0],
-                    colors: [ Theme.of(context).primaryColor,Theme.of(context).colorScheme.secondary,],
-                  ),
-                ),
-                child: Container(
-                  alignment: Alignment.bottomLeft,
-                  child: const Text("Food Delivery",
-                    style: TextStyle(fontSize: 25,color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: Icon(Icons.home, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Home',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
-                onTap: () {
-                  Get.offAll(() => const Home(), transition: Transition.rightToLeft);
-                },
-              ),
-              Divider(color: Theme.of(context).primaryColor, height: 1,),
-              ListTile(
-                leading: Icon(Icons.history_edu_outlined, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Orders',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
-                onTap: () {
-                  Get.to(() => RestOrderHistory(user: widget.user), transition: Transition.rightToLeftWithFade);
-                },
-              ),
-              Divider(color: Theme.of(context).primaryColor, height: 1,),
-              ListTile(
-                leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
-                onTap: () {
-                  Get.to(() => RestaurantProfile(user: widget.user), transition: Transition.rightToLeftWithFade);
-                },
-              ),
-              Divider(color: Theme.of(context).primaryColor, height: 1,),
-              ListTile(
-                leading: Icon(Icons.restaurant_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Add Menu',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
-                onTap: () {
-                  Get.to(() => AddMenu(user: widget.user), transition: Transition.rightToLeftWithFade);
-                },
-              ),
-              Divider(color: Theme.of(context).primaryColor, height: 1,),
-              ListTile(
-                leading: Icon(Icons.edit_document, size: _drawerIconSize, color: Theme.of(context).colorScheme.secondary,),
-                title: Text('View Menu', style: TextStyle(fontSize: _drawerFontSize, color: Theme.of(context).colorScheme.secondary),),
-                onTap: () {
-                  Get.to(() => ViewMenuScreen(user: widget.user), transition: Transition.rightToLeftWithFade);
-                },
-              ),
-              Divider(
-                color: Theme.of(context).primaryColor,
-                height: 1,
-              ),
-              ListTile(
-                leading: Icon(Icons.logout_rounded, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Logout',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
-                onTap: () async {
-                  await _auth.SignOut();
-                  Get.offAll(() => const Wrapper(), transition: Transition.fade);
-                },
-              ),
-            ],
           ),
         ),
       ),

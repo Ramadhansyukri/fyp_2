@@ -1,14 +1,22 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cool_alert/cool_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/user/set_address.dart';
-import 'package:fyp_2/screens/user/topup.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
 import 'package:motion_toast/motion_toast.dart';
+import 'package:passcode_screen/circle.dart';
+import 'package:passcode_screen/keyboard.dart';
+import 'package:passcode_screen/passcode_screen.dart';
 import '../../models/cart_models.dart';
 import '../../models/user_models.dart';
 import '../../services/database.dart';
+import 'package:bcrypt/bcrypt.dart' as encrypt;
+import 'package:get/get.dart';
+
+import '../home_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({Key? key, required this.user}) : super(key: key);
@@ -23,6 +31,7 @@ class _CartScreenState extends State<CartScreen> {
   List<CartItem> _cartItems = [];
   double _deliveryFee = 0.0;
   String _userAddress = '';
+  final StreamController<bool> _verificationNotifier = StreamController<bool>.broadcast();
 
   @override
   void initState() {
@@ -276,16 +285,14 @@ class _CartScreenState extends State<CartScreen> {
                       alignment: Alignment.bottomRight,
                       child: ElevatedButton(
                         onPressed: () {
-                          CoolAlert.show(
-                              context: context,
-                              type: CoolAlertType.warning,
-                              title: "Confirmation",
-                              text: 'Are you sure you?',
-                              confirmBtnText: 'Yes',
-                              confirmBtnColor: Colors.green,
-                              onConfirmBtnTap: () {
-                                _checkout();
-                              }
+                          _PinScreen(
+                            context,
+                            opaque: false,
+                            cancelButton: const Text(
+                              'Cancel',
+                              style: TextStyle(fontSize: 16, color: Colors.white),
+                              semanticsLabel: 'Cancel',
+                            ),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -304,25 +311,70 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
+  void _PinScreen(
+      BuildContext context, {
+        required bool opaque,
+        CircleUIConfig? circleUIConfig,
+        KeyboardUIConfig? keyboardUIConfig,
+        required Widget cancelButton,
+        List<String>? digits,
+      }) {
+    Navigator.push(
+        context,
+        PageRouteBuilder(
+          opaque: opaque,
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              PasscodeScreen(
+                title: const Text(
+                  'Enter App Passcode',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white, fontSize: 28),
+                ),
+                circleUIConfig: circleUIConfig,
+                keyboardUIConfig: keyboardUIConfig,
+                passwordEnteredCallback: _onPasscodeEntered,
+                cancelButton: cancelButton,
+                deleteButton: const Text(
+                  'Delete',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  semanticsLabel: 'Delete',
+                ),
+                shouldTriggerVerification: _verificationNotifier.stream,
+                backgroundColor: Colors.black.withOpacity(0.8),
+                cancelCallback: _onPasscodeCancelled,
+                digits: digits,
+                passwordDigits: 6,
+              ),
+        ));
+  }
+
+  void _onPasscodeCancelled() {
+    Navigator.maybePop(context);
+  }
+
+  void _onPasscodeEntered(String enteredPasscode) async {
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(widget.user!.uid);
+    final userData = await userDoc.get();
+    final storedPin = userData.get('PIN') as String;
+    final bool isPinValid = encrypt.BCrypt.checkpw(enteredPasscode, storedPin);
+    _verificationNotifier.add(isPinValid);
+    if (isPinValid) {
+      _checkout();
+    }
+  }
+
   void _checkout() async {
-    // Compare total amount and user balance
     double totalAmount = _calculateTotal() + _deliveryFee;
-    double userBalance = await UserDatabaseService(uid: widget.user!.uid.toString()).getUserBalance(); // Replace this with your logic to fetch user balance from Firebase
+    double userBalance = await UserDatabaseService(uid: widget.user!.uid.toString()).getUserBalance();
 
     if (totalAmount > userBalance) {
-      // Display error message and stop the process
       if (context.mounted){
         CoolAlert.show(
-            context: context,
-            type: CoolAlertType.confirm,
-            title: "Insufficient Balance",
-            text: 'Top up now?',
-            confirmBtnText: 'Yes',
-            cancelBtnText: 'No',
-            confirmBtnColor: Colors.green,
-            onConfirmBtnTap: () {
-              Get.to(()=> TopUpScreen(user: widget.user,), transition: Transition.downToUp, duration: const Duration(seconds: 1));
-            }
+          context: context,
+          type: CoolAlertType.error,
+          title: 'Oops...',
+          text: 'Insufficient Balance',
+          loopAnimation: false,
         );
       }
       return;
@@ -331,17 +383,16 @@ class _CartScreenState extends State<CartScreen> {
     double newBalance = userBalance - totalAmount;
     await UserDatabaseService(uid: widget.user!.uid.toString()).deductUserBalance(newBalance);
 
-    // Store necessary data into Firebase order collection
-    await OrderDatabaseService().createOrder(widget.user!.uid.toString(), _cartItems[0].restID, _deliveryFee, totalAmount, _userAddress); // Replace this with your logic to save order data to Firebase
+    await OrderDatabaseService().createOrder(widget.user!.uid.toString(), _cartItems[0].restID, _deliveryFee, totalAmount, _userAddress);
 
-    // Refresh the screen or navigate to a different screen
     if (context.mounted){
       CoolAlert.show(
         context: context,
         type: CoolAlertType.success,
         text: 'Transaction completed successfully!',
-        autoCloseDuration: const Duration(seconds: 2),
-      );
+      ).then((_) {
+        Get.offAll(() => const Home(), transition: Transition.rightToLeft);
+      });
     }
   }
 }

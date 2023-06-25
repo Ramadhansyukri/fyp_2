@@ -365,12 +365,6 @@ class _AddMenuState extends State<AddMenu> with SingleTickerProviderStateMixin {
                                     onPressed: () async {
                                       if (_formKey.currentState!.validate()){
                                         try{
-                                          showDialog(
-                                              context: context,
-                                              barrierDismissible: false,
-                                              builder: (context) => const Center(child: CircularProgressIndicator())
-                                          );
-
                                           String filename = DateTime.now().millisecondsSinceEpoch.toString();
 
                                           Reference referenceRoot = FirebaseStorage.instance.ref().child('foodimages');
@@ -387,6 +381,7 @@ class _AddMenuState extends State<AddMenu> with SingleTickerProviderStateMixin {
                                               animationDuration: const Duration(seconds: 1),
                                               toastDuration: const Duration(seconds: 2),
                                             ).show(context);
+                                            Get.offAll(() => const Home(), transition: Transition.rightToLeft);
                                           }
                                         }catch(e){
                                           MotionToast.error(

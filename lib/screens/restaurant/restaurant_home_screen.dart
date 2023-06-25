@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cool_alert/cool_alert.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:fyp_2/screens/restaurant/rest_view_order.dart';
 import 'package:fyp_2/screens/restaurant/restaurant_order_history.dart';
-import 'package:fyp_2/screens/restaurant/restaurant_profile_screen.dart';
+import 'package:fyp_2/screens/restaurant/restaurant_setting.dart';
 import 'package:fyp_2/screens/restaurant/view_menu.dart';
 import 'package:fyp_2/screens/wrapper.dart';
 import 'package:get/get.dart';
@@ -14,6 +18,7 @@ import '../../services/auth.dart';
 import '../../shared/theme_helper.dart';
 import '../../widgets/header_widget.dart';
 import '../home_screen.dart';
+import '../user/user_setting.dart';
 import 'add_menu_screen.dart';
 
 class RestaurantHome extends StatefulWidget {
@@ -138,6 +143,43 @@ class _RestaurantHomeState extends State<RestaurantHome> with SingleTickerProvid
     );
   }
 
+  void checkPinIsNull() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final userSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .get();
+
+    final pinIsNull = userSnapshot.data()?['PIN'] == null;
+
+    if (pinIsNull) {
+      final completer = Completer<bool>();
+
+      CoolAlert.show(
+        context: context,
+        type: CoolAlertType.confirm,
+        title: "PIN needed",
+        text: 'Please set your PIN to use this feature',
+        confirmBtnText: 'Yes',
+        cancelBtnText: 'No',
+        confirmBtnColor: Colors.green,
+        onConfirmBtnTap: () {
+          completer.complete(true);
+        },
+        onCancelBtnTap: () {
+          completer.complete(false);
+        },
+      );
+
+      final shouldNavigate = await completer.future;
+      if (shouldNavigate) {
+        Get.to(() => UserSetting(user: widget.user), transition: Transition.rightToLeftWithFade);
+      }
+    } else {
+
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -210,10 +252,10 @@ class _RestaurantHomeState extends State<RestaurantHome> with SingleTickerProvid
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
               ListTile(
-                leading: Icon(Icons.verified_user_sharp, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
-                title: Text('Profile Page',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
+                leading: Icon(Icons.settings, size: _drawerIconSize,color: Theme.of(context).colorScheme.secondary,),
+                title: Text('Settings',style: TextStyle(fontSize: _drawerFontSize,color: Theme.of(context).colorScheme.secondary),),
                 onTap: () {
-                  Get.to(() => RestaurantProfile(user: widget.user), transition: Transition.rightToLeftWithFade);
+                  Get.to(() => RestSetting(user: widget.user), transition: Transition.rightToLeftWithFade);
                 },
               ),
               Divider(color: Theme.of(context).primaryColor, height: 1,),
@@ -326,6 +368,7 @@ class _RestaurantHomeState extends State<RestaurantHome> with SingleTickerProvid
                                     decoration: ThemeHelper().buttonBoxDecoration(context),
                                     child: ElevatedButton(
                                       style: ThemeHelper().buttonStyle(),
+                                      onPressed: checkPinIsNull,
                                       child: Padding(
                                         padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
                                         child: Text(
@@ -337,9 +380,6 @@ class _RestaurantHomeState extends State<RestaurantHome> with SingleTickerProvid
                                           ),
                                         ),
                                       ),
-                                      onPressed: () {
-                                        // TODO: Implement cash out functionality
-                                      },
                                     ),
                                   ),
                                 ],

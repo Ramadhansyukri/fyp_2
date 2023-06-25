@@ -115,21 +115,15 @@ class _UserViewOrderState extends State<UserViewOrder> {
 
   void _submitRating(String orderId) {
     if (_isRated) {
-      // Order has already been rated, disable rating feature
       return;
     }
 
-    // Update the rating in Firestore
-    FirebaseFirestore.instance
-        .collection('Order')
-        .doc(orderId)
+    FirebaseFirestore.instance.collection('Order').doc(orderId)
         .update({
       'rating': _rating,
-    })
-        .then((_) {
-      // Rating saved successfully
+    }).then((_) {
       setState(() {
-        _isRated = true; // Disable rating feature
+        _isRated = true;
       });
       MotionToast.success(
         title: const Text("Rating submitted"),
@@ -138,17 +132,11 @@ class _UserViewOrderState extends State<UserViewOrder> {
         toastDuration: const Duration(seconds: 2),
       ).show(context);
 
-      // Add rating to restaurant collection
       String restaurantId = widget.order!.restID;
-      FirebaseFirestore.instance
-          .collection('restaurant')
-          .doc(restaurantId)
-          .collection('Ratings')
-          .doc(orderId)
+      FirebaseFirestore.instance.collection('restaurant').doc(restaurantId)
+          .collection('Ratings').doc(orderId)
           .set({'rating': _rating});
-    })
-        .catchError((error) {
-      // Error saving rating
+    }).catchError((error) {
       MotionToast.error(
         title: const Text("Error rating order"),
         description: Text(error.toString()),

@@ -10,6 +10,7 @@ import '../../services/auth.dart';
 import '../../widgets/header_widget.dart';
 import '../home_screen.dart';
 import 'add_menu_screen.dart';
+import 'edit_menu_screen.dart';
 
 class ViewMenuScreen extends StatefulWidget {
   //const RiderHome({Key? key}) : super(key: key);
@@ -164,154 +165,154 @@ class _ViewMenuScreenState extends State<ViewMenuScreen> with SingleTickerProvid
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Builder(
-          builder: (context) => SizedBox(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            child: Column(
-              children: [
-                Stack(
+      body: Builder(
+        builder: (context) {
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                child: Column(
                   children: [
-                    AnimatedBuilder(
-                      animation: _animationController,
-                      builder: (context, child) {
-                        return Transform.translate(
-                          offset: _headerOffsetAnimation.value * 100,
-                          child: const SizedBox(
-                            height: 100,
-                            child: HeaderWidget(100, false, Icons.house_rounded),
-                          ),
-                        );
-                      },
-                    ),
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Text(
-                          "Your Menu".toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                    Stack(
+                      children: [
+                        AnimatedBuilder(
+                          animation: _animationController,
+                          builder: (context, child) {
+                            return Transform.translate(
+                              offset: _headerOffsetAnimation.value * 100,
+                              child: const SizedBox(
+                                height: 100,
+                                child: HeaderWidget(100, false, Icons.house_rounded),
+                              ),
+                            );
+                          },
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20,),
-                Expanded(
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance.collection('restaurant').doc(widget.user!.uid).collection("menu").snapshots(),
-                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (snapshot.hasError) {
-                        return Text('Error: ${snapshot.error}');
-                      }
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      }
-                      if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                        return const Text('Add your Menu');
-                      }
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: snapshot.data!.docs.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          final document = snapshot.data!.docs[index];
-                          double price = document['price'];
-                          String showPrice = price.toStringAsFixed(2);
-                          return GestureDetector(
-                            onTap: (){
-                              //TODO: edit menu
-                            },
-                            child: Container(
-                              height: 120,
-                              width: MediaQuery.of(context).size.width,
-                              margin: const EdgeInsets.only(top: 15),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(30),
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 20),
+                            child: Text(
+                              "Your Menu".toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20,),
+                    StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance.collection('restaurant').doc(widget.user!.uid).collection("menu").snapshots(),
+                      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        }
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        }
+                        if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
+                          return const Text('Add your Menu');
+                        }
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: snapshot.data!.docs.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final document = snapshot.data!.docs[index];
+                            double price = document['price'];
+                            String showPrice = price.toStringAsFixed(2);
+                            return GestureDetector(
+                              onTap: (){
+                                Get.to(() => EditMenu(user: widget.user, menuID:document['menuID']), transition: Transition.rightToLeftWithFade);
+                              },
                               child: Container(
-                                padding: const EdgeInsets.only(top: 15, left: 15, right: 15, bottom: 15),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                      height: 100,
-                                      width: 100,
-                                      child: Image.network(
-                                        '${document['imageUrl']}',
-                                        fit: BoxFit.contain,
+                                height: 120,
+                                width: MediaQuery.of(context).size.width,
+                                margin: const EdgeInsets.only(top: 15),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  color: Colors.white,
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.only(top: 15, left: 15, right: 15, bottom: 15),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      SizedBox(
+                                        height: 100,
+                                        width: 100,
+                                        child: Image.network(
+                                          '${document['imageUrl']}',
+                                          fit: BoxFit.contain,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 16), // Adjust the spacing as needed
-                                    SizedBox(
-                                      height: 120,
-                                      width: 170,
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            flex: 1,
-                                            child: Align(
-                                              alignment: Alignment.topLeft,
-                                              child: Text(
-                                                '${document['name']}',
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
+                                      const SizedBox(width: 16), // Adjust the spacing as needed
+                                      SizedBox(
+                                        height: 120,
+                                        width: 170,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                              flex: 1,
+                                              child: Align(
+                                                alignment: Alignment.topLeft,
+                                                child: Text(
+                                                  '${document['name']}',
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: Text(
-                                                '${document['desc']}',
-                                                maxLines: 2,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                    color: Colors.grey
+                                            Expanded(
+                                              flex: 1,
+                                              child: Align(
+                                                alignment: Alignment.centerLeft,
+                                                child: Text(
+                                                  '${document['desc']}',
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                      color: Colors.grey
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Align(
-                                              alignment: Alignment.bottomLeft,
-                                              child: Text(
-                                                showPrice,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
+                                            Expanded(
+                                              flex: 1,
+                                              child: Align(
+                                                alignment: Alignment.bottomLeft,
+                                                child: Text(
+                                                  showPrice,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+                            );
+                          },
+                        );
+                      },
+                    )
+                  ],
+                )
+              )
+            ],
+          );
+        },
       )
     );
   }

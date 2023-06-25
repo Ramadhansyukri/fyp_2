@@ -28,6 +28,7 @@ class UserDatabaseService{
       usertype: usertype,
       address: address,
       balance: balance,
+      PIN: null,
     );
 
     if(usertype == 'Customer'){

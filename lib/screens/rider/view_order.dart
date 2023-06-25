@@ -65,13 +65,10 @@ class _ViewOrderScreenState extends State<ViewOrderScreen> {
     final orderDocRef =
     FirebaseFirestore.instance.collection('Order').doc(widget.order!.orderID);
 
-    // Update the order status to 'Delivered'
     orderDocRef.update({'status': 'Delivered'}).then((_) async {
-      // Add balance to the user based on the subtotal
       await UserDatabaseService(uid: widget.order!.riderID.toString())
           .addUserBalance(widget.order!.deliveryFee);
 
-      // Delete the currentorder subcollection inside the rider collection
       final riderID = widget.order!.riderID.toString();
       final currentOrderCollectionRef = FirebaseFirestore.instance
           .collection('rider')
@@ -85,7 +82,6 @@ class _ViewOrderScreenState extends State<ViewOrderScreen> {
       }
 
       setState(() {
-        // Refresh the UI to reflect the updated order status
         _orderFuture = _fetchOrder(widget.order!.orderID);
         widget.onOrderStatusUpdated();
       });
