@@ -25,6 +25,7 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: Colors.grey.shade100, colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.grey).copyWith(secondary: _accentColor),
         ),
         home: const SplashScreen(),
+      debugShowCheckedModeBanner: false,
       );
   }
 }

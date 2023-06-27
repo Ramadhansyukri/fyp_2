@@ -372,5 +372,3 @@ class _UserRegState extends State<UserReg> {
     );
   }
 }
-
-
