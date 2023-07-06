@@ -165,7 +165,7 @@ class _RestCashOutState extends State<RestCashOut> {
     _verificationNotifier.add(isPinValid);
     if (isPinValid) {
         double userBalance = await UserDatabaseService(uid: widget.user!.uid.toString()).getUserBalance();
-        if (userBalance > double.parse(amountController.text)) {
+        if (userBalance >= double.parse(amountController.text)) {
           if(mounted){
             cashOut(context);
           }

@@ -55,6 +55,7 @@ class AuthService{
           backgroundColor: Colors.green.withOpacity(0.8),
           textColor: Colors.white
       );
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const VerifyEmail()));
     }catch(e){
       Fluttertoast.showToast(
           msg: e.toString(),

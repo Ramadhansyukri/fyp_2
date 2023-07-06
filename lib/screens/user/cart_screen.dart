@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cool_alert/cool_alert.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp_2/screens/user/set_address.dart';
+import 'package:fyp_2/screens/user/user_setting.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:motion_toast/motion_toast.dart';
@@ -147,6 +149,53 @@ class _CartScreenState extends State<CartScreen> {
     return total;
   }
 
+  void checkPinIsNull() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final userSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .get();
+
+    final pinIsNull = userSnapshot.data()?['PIN'] == null;
+
+    if (pinIsNull) {
+      final completer = Completer<bool>();
+
+      CoolAlert.show(
+        context: context,
+        type: CoolAlertType.confirm,
+        title: "PIN needed",
+        text: 'Please set your PIN to use this feature',
+        confirmBtnText: 'Yes',
+        cancelBtnText: 'No',
+        confirmBtnColor: Colors.green,
+        onConfirmBtnTap: () {
+          completer.complete(true);
+        },
+        onCancelBtnTap: () {
+          completer.complete(false);
+        },
+      );
+
+      final shouldNavigate = await completer.future;
+      if (shouldNavigate) {
+        Get.to(() => UserSetting(user: widget.user), transition: Transition.rightToLeftWithFade);
+      }
+    } else {
+      if(mounted){
+        _PinScreen(
+          context,
+          opaque: false,
+          cancelButton: const Text(
+            'Cancel',
+            style: TextStyle(fontSize: 16, color: Colors.white),
+            semanticsLabel: 'Cancel',
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -205,8 +254,8 @@ class _CartScreenState extends State<CartScreen> {
             padding: const EdgeInsets.all(16),
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: Colors.white38,
-              borderRadius: BorderRadius.circular(30),
+                color: Colors.white38,
+                borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
@@ -254,46 +303,47 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     Expanded(
                         child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Column(
-                            children: [
-                              Text(
-                                'Subtotal: RM${_calculateTotal().toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 16,
+                            alignment: Alignment.centerLeft,
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Subtotal: RM${_calculateTotal().toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                'Delivery Fee: RM${_deliveryFee.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 16,
+                                Text(
+                                  'Delivery Fee: RM${_deliveryFee.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Total Fee: RM${(_calculateTotal() + _deliveryFee).toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Total Fee: RM${(_calculateTotal() + _deliveryFee).toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          )
+                              ],
+                            )
                         )
                     ),
                     Align(
                       alignment: Alignment.bottomRight,
                       child: ElevatedButton(
                         onPressed: () {
-                          _PinScreen(
-                            context,
-                            opaque: false,
-                            cancelButton: const Text(
-                              'Cancel',
-                              style: TextStyle(fontSize: 16, color: Colors.white),
-                              semanticsLabel: 'Cancel',
-                            ),
-                          );
+                          if(_userAddress.isEmpty && mounted){
+                            MotionToast.error(
+                              title:  const Text("Error"),
+                              description:  const Text("Please set delivery address"),
+                              animationDuration: const Duration(seconds: 1),
+                              toastDuration: const Duration(seconds: 2),
+                            ).show(context);
+                          }else{
+                            checkPinIsNull();
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.white, backgroundColor: Colors.green,
