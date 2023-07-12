@@ -130,14 +130,15 @@ class _AuthenticateState extends State<Authenticate> with SingleTickerProviderSt
                 cancelCallback: _onPasscodeCancelled,
                 digits: digits,
                 passwordDigits: 6,
-                bottomWidget: Row(
+                bottomWidget: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 30,),
                     GestureDetector(
                       onTap: () async {
                         await _authenticateWithBiometrics();
                       },// Trigger fingerprint authentication
-                      child: const Icon(Icons.fingerprint), // Replace with your fingerprint icon
+                      child: const Icon(Icons.fingerprint, size: 50, color: Colors.white,), // Replace with your fingerprint icon
                     ),
                   ],
                 ),

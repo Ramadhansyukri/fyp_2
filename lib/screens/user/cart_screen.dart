@@ -31,7 +31,7 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   List<CartItem> _cartItems = [];
-  double _deliveryFee = 0.0;
+  double _deliveryFee = 1.0;
   String _userAddress = '';
   final StreamController<bool> _verificationNotifier = StreamController<bool>.broadcast();
 
@@ -64,7 +64,7 @@ class _CartScreenState extends State<CartScreen> {
   void _calculateDeliveryFee() async {
     try {
       if (_cartItems.isEmpty) {
-        _deliveryFee = 0;
+        _deliveryFee = 1;
         return;
       }
 
